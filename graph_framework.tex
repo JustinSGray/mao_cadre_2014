@@ -144,7 +144,7 @@ over the course of two days, to a termination tolerance of $10^{-5}$.
 
 \begin{figure}
 \centering
-\includegraphics[scale=0.23]{images/opt.png}
+\includegraphics[width=0.99\textwidth]{images/opt.png}
 \caption[width=0.22\textwidth]{Convergence of the CADRE problem.}
 \label{convergence}
 \end{figure}
@@ -180,6 +180,51 @@ and battery charge level ($SOC$). These variables were each instantiated to unif
 (across all time points) of 0, 0, $\frac{\pi}{4}$, and 0 respectively. The optimizer, operating on
 OpenMDAO's graph formulation of the problem succeeded at converging each of these variables to the values
 shown, for each time point.
+
+Further post processing of the data included automatic geographical rendering of the trajectories of
+the CADRE satellite for each of the 6 design points, using the Google
+Maps\footnote{http://developers.google.com/maps/} and Google
+Earth\footnote{http://developers.google.com/earth/} APIs. The trajectories are
+represented as polygonal chain ("polyline") elements, colored according to the
+satellites communication bitrate with the ground station during the corresponding
+window of time.
+
+Each time point is represented by two separate polyline objects with endpoints
+at the location of the satellite at that moment in time. One polyline element terminates
+halfway between this location and the location at the preceding moment in time,
+and the other between this and the location at the next moment in time. This way,
+the colored line segments seen on the figures are appropriately centered on the
+locations determined by the time points when the data bit rate values were calculated
+by the OpenMDAO model.
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\textwidth]{images/pt3_gearth3.png}
+\caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
+for the $4^{\textrm{th}}$ design point onto the surface of the Earth, illustrating the
+communication data rates near the ground station.}
+\label{pt3_g_earth}
+\end{figure}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\textwidth]{images/allpts_map_data.png}
+\caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
+for all 6 design points onto the surface of the Earth, illustrating the
+communication data rates near the ground station.}
+\label{pt3_g_earth}
+\end{figure}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\textwidth]{images/allpts_gearth2.png}
+\caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
+for all 6 design points onto the surface of the Earth.}
+\label{pt3_g_earth}
+\end{figure}
 
 
   \section{Aero-Structural Problem Formulation}
