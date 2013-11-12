@@ -68,34 +68,67 @@
     work here]. Coupled Aero-structural optimization is another area where gradient based optimization methods have 
     been employed. [Cite Martins groups work here]. Although these problems have large design spaces, 
     they include only a few disciplines (i.e. Geometry, Aerodynamics, Structures). The relative simplicity of 
-    the problem formulation make it feasible to use custom implementations tailored to a specific problem. These specific 
-    implementations make it difficult to modify the problem formulation without significant effort. For problems 
-    with more disciplines customs solutions become less feasible, and a more general means of setting up 
-    the design problem is required. 
+    the problem formulation make it feasible to use custom implementations tailored to a specific problem. Naturally however, 
+    this approach also limits the problem complexity that can be addressed with current MDAO methods. 
 
-    In this work we demonstrate how OpenMDAO, an open-source MDAO framework, provides a more general 
-    solution to constructing and solving complex problems with large design spaces. Use of OpenMDAO 
-    provides benefits in a number of important respects: 
+    On the other end of the spectrum, traditional systems analysis models can be composed of 10's to 100's of disciplines, 
+    but usually work with lower fidelity analyses. These problems commonly contain a very high degree of interdisciplinary 
+    coupling, while working with lower fidelity analyses. These more complex problem formulations are much more difficult to compute 
+    analytic derivatives for at the system level, even if each discipline could provide its own partial derivatives. So many 
+    problems are solved using a finite difference approach, which restricts the size of the design space. 
+
+    If you placed complexity on the Y-axis and Fidelity on the X-axis, then the problem spectrum resemble the notional 
+    cartoon in Figure \ref{fig:complexity_cartoon}. In this diagram, there is a gap between the lower and higher fidelity 
+    type problems is indicative of the bifurcation in methods used to solve each type of problem currently. This gap begs the 
+    question, ``How should you appraoch a problem of medium complexity and medium fidelity?'' We propose that the answer to this
+    dilemma is to develop a more general manner of implementing MDAO problems that can be applied to any problem across the entire 
+    space of complexity and fidelity.  
+
+    \begin{figure}[!htb]
+      \includegraphics[width=.5\textwidth]{images/complexity_cartoon}
+      \caption{ Notional spectrum of design problems currently being addressed. \label{fig:complexity_cartoon}}
+    \end{figure}
+
+    In this work we demonstrate how OpenMDAO, an open-source framework, such a general 
+    solution to constructing and solving complex problems with large design spaces using the 
+    same MDAO methods commonly applied to the the shape optimization and aero-structural optimization 
+    problems. OpenMDAO achieves this by providing three key features: 
 
     \begin{enumerate}
-      \item Combining analytic derivatives with finite difference in a mixed derivatives environment
-      \item Automatic and efficient solving for the coupled derivatives at the system level 
-      \item Automatic assembly of the full gradient from the partial derivatives of each discipline
-      \item Flexbility via separation of problem formulation from solution strategy 
-      \item Simple implementation for multi-point design problems
+      \item Automatic handling of arbitrary interdisciplinary coupling 
+      \item Automatic formulation of gradients, including coupled derivatives, given arbitrary coupling
+      \item Efficient operation in a high performance computing environment with distributed data
     \end{enumerate}
 
-    The approach used in OpenMDAO is maintain a central, monolithic, data connectivity graph between all 
-    variables and components in the model. The graph utilizes the structure proposed by Pate et. al \cite{graph_problem2013} 
-    and represents the complete problem formulation as defined by the user. The graph is then used in order to 
-    facilitate all of the five features described above. The 
+    \begin{comment}
+      \begin{enumerate}
+        \item Combining analytic derivatives with finite difference in a mixed derivatives environment
+        \item Efficient solving for the coupled derivatives at the system level 
+        \item Assembly of the full gradient from the partial derivatives of each discipline
+        \item Flexbility via separation of problem formulation from solution strategy 
+        \item Simple implementation for multi-point design problems
+      \end{enumerate}
+    \end{comment}
+
+    To demonstrate these capabilities, we present two different problems representing different levels of 
+    complexity and fidelity, solved within the OpenMDAO framework. The fist problem is the design of a small 
+    satellite platform for taking weather measurements in the thermosphere, called CADRE. The CADRE problem has a 
+    complex problem formulation with XX disciplines and over 25000 design variables, but is lower fidelity and can 
+    be run on a single processor. This problem demonstrates that OpenMDAO successfully bridges the gap between shown 
+    in Figure \ref{fig:complexity_cartoon}. The second problem is an aero-structural design of the Common Research 
+    Model wing, using CFD and FEA. This problem shows that OpenMDAO can work with problems that demand higher fidelity 
+    simulations with distributed data. 
 
   \section{Problem Formulation Graph}
 
-    One key technology that enables the flexible solution of an MDAO problem is the representation
-    of its dataflow as a dependency graph. A dependency graph is a directed network graph whose
-    edges represent the dependencies between its nodes. In a framework, an input needed by one
-    discipline must be provided by the output of another. This is a dependency, and is represented 
+
+    OpenMDAO maintains a central, monolithic, data connectivity graph between all 
+    variables and components in the model, called the dependency graph. The graph utilizes the structure proposed by 
+    Pate et. al \cite{graph_problem2013} and represents the complete problem formulation as 
+    defined by the user. In a dependency graph each component and all variables of that component are 
+    represented by nodes with directed edges between them describing their dependencies on each other. 
+
+    In OpenMDAO when an input needed by one discipline is provided by the output of another. This is a dependency, and is represented 
     in a dependency graph containing nodes for the output and input, and an directional edge
     between them. It is clear that the upstream discipline must provide the output before the 
     downstream one can receive it, and this directional information is contained in the dependency
