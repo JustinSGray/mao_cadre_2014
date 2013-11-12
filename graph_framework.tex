@@ -36,7 +36,7 @@
 \usepackage{amsmath}
 \usepackage{lscape}
 \usepackage{hyperref}
-%\usepackage{minted}
+\usepackage{minted}
 \usepackage{color}
 \usepackage{appendix}
 \usepackage[section]{placeins}
@@ -140,7 +140,9 @@
   \section{CADRE Results}
 
 The OpenMDAO implementation of the CADRE problem was executed on a Macbook Pro[specs]
-over the course of two days, to a termination tolerance of $10^{-5}$.
+over the course of two days, to a termination tolerance of $10^{-5}$. This tolerance
+was achieved within approximately 106 iterations, using the SNOPT\cite{gill2005snopt}
+optimizer.
 
 \begin{figure}
 \centering
@@ -151,7 +153,7 @@ over the course of two days, to a termination tolerance of $10^{-5}$.
 
 
 Figure \ref{convergence} illustrates the convergence of the CADRE problem over the course of
-106 iterations, using the SNOPT\cite{gill2005snopt} optimizer. The first row plots the
+these iterations. The first row plots the
 value of the objective function, the total data downloaded over each design point. The objective
 function oscillated greatly over the course of the first half of the computed iterations, but
 stabilized by the 80th iteration near the value previously determined[cite CADRE paper]
