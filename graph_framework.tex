@@ -60,15 +60,15 @@
 
   \section{Introduction}
 
-    Many of today's the most intersting design problems involve very large design spaces with 100's or 1000's of 
-    design variables. Large design spaces are often approached through the use of gradient based optimziation 
-    analytic derivatives to achieve highly scalable solution stratgies. For instance, adjoint based gradient 
-    methods have allowed CFD based shape optimization to tackle problems with 100's of design varibles. [Cite Juan's Groups
-    work here]. Coupled Aero-structural optimziation is another area where gradient based optimization methods have 
+    Many of today's the most interesting design problems involve very large design spaces with 100's or 1000's of 
+    design variables. Large design spaces are often approached through the use of gradient based optimization 
+    analytic derivatives to achieve highly scalable solution strategies. For instance, adjoint based gradient 
+    methods have allowed CFD based shape optimization to tackle problems with 100's of design variables. [Cite Juan's Groups
+    work here]. Coupled Aero-structural optimization is another area where gradient based optimization methods have 
     been employed. [Cite Martins groups work here]. Although these problems have large design spaces, 
     they include only a few disciplines (i.e. Geometry, Aerodynamics, Structures). The relative simplicity of 
-    the problem formulation make it feasible to use custom implementations taylored to a specific problem. These specific 
-    implemnetations make it difficult to modify the problem formulation without significant effort. For problems 
+    the problem formulation make it feasible to use custom implementations tailored to a specific problem. These specific 
+    implementations make it difficult to modify the problem formulation without significant effort. For problems 
     with more disciplines customs solutions become less feasible, and a more general means of setting up 
     the design problem is required. 
 
@@ -87,7 +87,7 @@
     The approach used in OpenMDAO is maintain a central, monolithic, data connectivity graph between all 
     variables and components in the model. The graph utilizes the structure proposed by Pate et. al \cite{graph_problem2013} 
     and represents the complete problem formulation as defined by the user. The graph is then used in order to 
-    facilitate all of the five features described above. One of the key aspects 
+    facilitate all of the five features described above. The 
 
   \section{Problem Formulation Graph}
 
@@ -112,13 +112,13 @@
     drive the process of invalidation, which finds the minimum set of components that needs to
     be re-executed when a set of inputs change. (ref: last OpenMDAO paper.) A dependency graph
     can also identify cycles in the graph, and hence a cycle in the dataflow that must be resolved
-    by a solver. Similarly, the graph can also be used to examine the potential for paralellism at
+    by a solver. Similarly, the graph can also be used to examine the potential for parallelism at
     a component level.
 
     The determination of driver subgraphs is a capability that will be investigated in this paper.
     Consider an optimizer with n parameters, 1 objective, and m constraints. The relevant 
     subgraph of this problem is the set of component disciplines and their variable connection that
-    lie within the subgraph betwen the parameters and the contraints and objective. This subgraph
+    lie within the subgraph between the parameters and the constraints and objective. This subgraph
     contains the components that execute when the optimizer requests a function evaluation. It is
     also useful for setting up and solving the coupled derivative system when the optimizer requests
     a gradient evaluation. For calculation of the coupled derivative in adjoint mode, further
@@ -129,6 +129,8 @@
     [Intro to OpenMDAO paragraph]
 
     [Derivatives in OpenMDAO paragraph]
+
+  \section{CADRE Design Problem}
  
   \bibliography{references}
 
