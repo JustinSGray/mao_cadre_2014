@@ -61,21 +61,32 @@
   \end{abstract}
 
   \section{Motivation}
-    \begin{itemize}
-      \item Accessiblity to very large problems with 1000's to 10,000's of design variables 
-      \item Improved computational efficiency
-      \item Problem formulation flexibility 
-      \item Solution strategy flexibility
-    \end{itemize}
 
-  \section{Challenges}
-    \begin{itemize}
-      \item Heterogenous components: Not just in the multi-disciplinary sense, but also in the computation cost and complexity sense. 
-      \item Explicit vs Implicit Components
-      \item Separation of problem formulation and solution strategy: Monolithic mathematical description of the problem that is automatically decomposed into a more solvable form by the framework
-      \item Increate code resue and modularity
+    Many of today's the most intersting design problems involve very large design spaces with 100's or 1000's of 
+    design variables. Large design spaces are often approached through the use of gradient based optimziation 
+    analytic derivatives to achieve highly scalable solution stratgies. For instance, adjoint based gradient 
+    methods have allowed CFD based shape optimization to tackle problems with 100's of design varibles. [Cite Juan's Groups
+    work here]. Coupled Aero-structural optimziation is another area where gradient based optimization methods have 
+    been employed. [Cite Martins groups work here]. Although these problems have large design spaces, 
+    they include only a few disciplines (i.e. Geometry, Aerodynamics, Structures). The relative simplicity of 
+    the problem formulation make it feasible to use custom implementations taylored to a specific problem. These specific 
+    implemnetations make it difficult to modify the problem formulation without significant effort. For problems 
+    with more disciplines customs solutions become less feasible, and a more general means of setting up 
+    the design problem is required. 
 
-    \end{itemize}
+    In this work we demonstrate how OpenMDAO, an open-source MDAO framework, can provide a more general 
+    solution to constructing and solving complex problems with large design spaces. Use of OpenMDAO 
+    provides benefits in a number of important respects: 
+
+    \begin{enumerate}
+      \item Combining analytic derivatives with finite difference in a mixed derivatives environment
+      \item Automatic and efficient solving for the coupled derivatives at the system level 
+      \item Automatic assembly of the full gradient from the partial derivatives of each discipline
+      \item Flexbility via separation of problem formulation from solution strategy 
+      \item Improved ability to modify/grow a problem with additional disciplines
+    \end{enumerate}
+
+ 
 
 
 \end{document}
