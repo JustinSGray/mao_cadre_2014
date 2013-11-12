@@ -8,8 +8,7 @@
   \ Kenneth T. Moore,%
      \thanks{Senior Systems Engineer, MDAO Branch, Mail Stop 500-105, AIAA Senior Member}  
    \ Tristan A. Hearn,%
-     \thanks{Aerospace Engineer, MDAO Branch, Mail Stop 5-10, AIAA Member}
-  \ Bret A. Naylor\thanks{Senior Software Engineer, MDAO Branch, Mail Stop 500-105}\\
+     \thanks{Aerospace Engineer, MDAO Branch, Mail Stop 5-10, AIAA Member}\\
   {\normalsize\itshape
   NASA Glenn Research Center, Cleveland, OH}  \\
  }
@@ -29,7 +28,6 @@
 \setlength{\belowcaptionskip}{0pt}
 
 \usepackage{setspace}
-\doublespace
 
 \usepackage{graphicx}
 \usepackage{wrapfig}
@@ -60,7 +58,7 @@
 
   \end{abstract}
 
-  \section{Motivation}
+  \section{Introduction}
 
     Many of today's the most intersting design problems involve very large design spaces with 100's or 1000's of 
     design variables. Large design spaces are often approached through the use of gradient based optimziation 
@@ -74,7 +72,7 @@
     with more disciplines customs solutions become less feasible, and a more general means of setting up 
     the design problem is required. 
 
-    In this work we demonstrate how OpenMDAO, an open-source MDAO framework, can provide a more general 
+    In this work we demonstrate how OpenMDAO, an open-source MDAO framework, provides a more general 
     solution to constructing and solving complex problems with large design spaces. Use of OpenMDAO 
     provides benefits in a number of important respects: 
 
@@ -83,10 +81,55 @@
       \item Automatic and efficient solving for the coupled derivatives at the system level 
       \item Automatic assembly of the full gradient from the partial derivatives of each discipline
       \item Flexbility via separation of problem formulation from solution strategy 
-      \item Improved ability to modify/grow a problem with additional disciplines
+      \item Simple implementation for multi-point design problems
     \end{enumerate}
 
- 
+    The approach used in OpenMDAO is maintain a central, monolithic, data connectivity graph between all 
+    variables and components in the model. The graph utilizes the structure proposed by Pate et. al \cite{graph_problem2013} 
+    and represents the complete problem formulation as defined by the user. The graph is then used in order to 
+    facilitate all of the five features described above. 
 
+  \section{Problem Formulation Graph}
+
+    One key technology that enables the flexible solution of an MDAO problem is the representation
+    of its dataflow as a dependency graph. A dependency graph is a directed network graph whose
+    edges represent the dependencies between its nodes. In a framework, an input needed by one
+    discipline must be provided by the output of another. This is a dependency, and is represented 
+    in a dependency graph containing nodes for the output and input, and an directional edge
+    between them. It is clear that the upstream discipline must provide the output before the 
+    downstream one can receive it, and this directional information is contained in the dependency
+    graph.
+
+    The main advantage of tight integration with a dependency graph is the availability of efficient
+    algorithms for performing a number of functions that are useful for solving an MDAO problem.
+
+      1. Determination of component execution order.
+      2. Identification of cycles.
+      3. Identification of parallel structures.
+      4. Determination of driver subgraphs.
+      
+    The OpenMDAO framework uses a dependency graph to determine component execution order and to
+    drive the process of invalidation, which finds the minimum set of components that needs to
+    be re-executed when a set of inputs change. (ref: last OpenMDAO paper.) A dependency graph
+    can also identify cycles in the graph, and hence a cycle in the dataflow that must be resolved
+    by a solver. Similarly, the graph can also be used to examine the potential for paralellism at
+    a component level.
+
+    The determination of driver subgraphs is a capability that will be investigated in this paper.
+    Consider an optimizer with n parameters, 1 objective, and m constraints. The relevant 
+    subgraph of this problem is the set of component disciplines and their variable connection that
+    lie within the subgraph betwen the parameters and the contraints and objective. This subgraph
+    contains the components that execute when the optimizer requests a function evaluation. It is
+    also useful for setting up and solving the coupled derivative system when the optimizer requests
+    a gradient evaluation. For calculation of the coupled derivative in adjoint mode, further
+    efficiency can be gained by using the subgraph that includes just the portion of the graph 
+    between a single constraint and the parameters. Similarly for forward mode, the subgraph would
+    include just the portion of the graph between a single parameter and the constraints/objective.
+
+    [Intro to OpenMDAO paragraph]
+
+    [Derivatives in OpenMDAO paragraph]
+ 
+  \bibliography{references}
 
 \end{document}
