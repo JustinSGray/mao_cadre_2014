@@ -41,6 +41,8 @@
 \usepackage{appendix}
 \usepackage[section]{placeins}
 
+\newcommand{\txt}{\textrm}
+
 
 \captionsetup[figure]{margin=5pt,font=small,labelfont=bf,textfont=bf,justification=justified,}
 %\captionsetup[wrapfigure]{margin=5pt,font=small,labelfont=bf,justification=justified,singlelinecheck=off}
@@ -84,10 +86,10 @@
     dilemma is to develop a more general manner of implementing MDAO problems that can be applied to any problem across the entire 
     space of complexity and fidelity.  
 
-    \begin{figure}[!htb]
+    \begin{figure}[!htb]\begin{center}
       \includegraphics[width=.5\textwidth]{images/complexity_cartoon}
       \caption{ Notional spectrum of design problems currently being addressed. \label{fig:complexity_cartoon}}
-    \end{figure}
+    \end{center}\end{figure}
 
     In this work we demonstrate how OpenMDAO, an open-source framework, such a general 
     solution to constructing and solving complex problems with large design spaces using the 
@@ -114,33 +116,54 @@
     complexity and fidelity, solved within the OpenMDAO framework. The fist problem is the design of a small 
     satellite platform for taking weather measurements in the thermosphere, called CADRE. The CADRE problem has a 
     complex problem formulation with XX disciplines and over 25000 design variables, but is lower fidelity and can 
-    be run on a single processor. This problem demonstrates that OpenMDAO successfully bridges the gap between shown 
+    be run on a single processor. This problem demonstrates that OpenMDAO successfully bridges the gap shown 
     in Figure \ref{fig:complexity_cartoon}. The second problem is an aero-structural design of the Common Research 
     Model wing, using CFD and FEA. This problem shows that OpenMDAO can work with problems that demand higher fidelity 
-    simulations with distributed data. 
+    simulations with parallel communication and distributed data. 
 
   \section{Problem Formulation Graph}
-
 
     OpenMDAO maintains a central, monolithic, data connectivity graph between all 
     variables and components in the model, called the dependency graph. The graph utilizes the structure proposed by 
     Pate et. al \cite{graph_problem2013} and represents the complete problem formulation as 
     defined by the user. In a dependency graph each component and all variables of that component are 
     represented by nodes with directed edges between them describing their dependencies on each other. 
+    Figure \ref{fig:sellar_graph} shows a sample graph for the Sellar Problem \cite{AIAA:sellar} 
+    given in eqn. \ref{eqn:sellar_formulation}.  
 
-    In OpenMDAO when an input needed by one discipline is provided by the output of another. This is a dependency, and is represented 
-    in a dependency graph containing nodes for the output and input, and an directional edge
-    between them. It is clear that the upstream discipline must provide the output before the 
-    downstream one can receive it, and this directional information is contained in the dependency
-    graph.
+    \begin{align}
+        \txt{given} & \ \ y_1 = D_1(x_1,y_2,z_1,z_2) \notag
+        \\      & \ \ y_2 = D_2(y_1,z_1,z_2) \notag
+        \\\txt{min.} &\ \ F(x_1,y_1,y_2,z_2) \notag
+        \\\txt{w.r.t.} & \ \ x_1,y_1,y_2,z_1,z_2 \notag
+        \\\txt{s.t.} & \ \ G_1(y_1) \geq 0 \notag
+        \\     & \ \ G_2(y_2) \geq 0
+        \label{eqn:sellar_formulation}
+    \end{align}
+
+
+    \begin{figure}[!htb]\begin{center}
+      \includegraphics[width=.8\textwidth]{images/sellar_cycles}
+      \caption{ Dependency graph for the Sellar problem. \label{fig:sellar_graph}}
+    \end{center}\end{figure}
+
+    In the original graph syntax, a single node is given for every variable. This holds true for the graph 
+    within OpenMDAO, with only one minor caveat. In the case of any hierarchical variables, such as arrays
+    or VariableTrees, one variable node is created to represent the overall variable with additional nodes
+    created if any specific sub-variable is referenced (e.g. some slice of an array or some child variable from a 
+    VariableTree). Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. 
+
+     \begin{figure}[!htb]\begin{center}
+      xxxxxxx\\xxxxxxx\\xxxxxxx\\xxxxxxx\\xxxxxxx\\xxxxxxx\\
+      \caption{ Example graph with child nodes for sub-variables \label{fig:subvars}}
+    \end{center}\end{figure}
 
     The main advantage of tight integration with a dependency graph is the availability of efficient
     algorithms for performing a number of functions that are useful for solving an MDAO problem.
 
       1. Determination of component execution order.
-      2. Identification of cycles.
-      3. Identification of parallel structures.
-      4. Determination of driver subgraphs.
+      2. Identification of interdisciplinary coupling.
+      3. Construction of a linear system to solve for gradients.
       
     The OpenMDAO framework uses a dependency graph to determine component execution order and to
     drive the process of invalidation, which finds the minimum set of components that needs to
@@ -160,12 +183,8 @@
     between a single constraint and the parameters. Similarly for forward mode, the subgraph would
     include just the portion of the graph between a single parameter and the constraints/objective.
 
-    [Intro to OpenMDAO paragraph]
 
-    [Derivatives in OpenMDAO paragraph]
-
-
-    \subsection{Fake Finite Difference}
+    \subsection{Mixed Analytic and Finite Difference Gradients}
     \subsection{Relevant Variable Identification}
 
   \section{CADRE Problem Formulation}
