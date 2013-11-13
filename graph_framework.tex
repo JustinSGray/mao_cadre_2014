@@ -131,7 +131,7 @@
 
   \section{Dependency Graph}
 
-    OpenMDAO maintains a monolithic data connectivity graph between all 
+    OpenMDAO maintains a monolithic data connectivity graph between all
     variables and components in the model, called the dependency graph.
     Using efficient graph traversal algorithms, OpenMDAO provides a number of
     features which make it easier to implement large scale design problems.
@@ -144,17 +144,17 @@
 
     This section will describe the graph structure used to represent problem formulation in OpenMDAO,
     then discuss in detail how graph traversal algorithms are used to provide features. OpenMDAO relies
-    on the NetworkX \cite{hagberg-2008-exploring} python package for implementation of each of 
-    the algorithms. 
-      
+    on the NetworkX \cite{hagberg-2008-exploring} python package for implementation of each of
+    the algorithms.
+
 
     \subsection{Graph Structure}
-    The graph utilizes the structure proposed by 
-    Pate et. al \cite{graph_problem2013} and represents the complete problem formulation as 
-    defined by the user. In a dependency graph, each component and all variable inputs and outputs of that component are 
-    represented by nodes with directed edges between them describing their dependencies on each other. 
-    Figure \ref{fig:sellar_graph} shows a sample graph for the Sellar Problem \cite{AIAA:sellar} 
-    given in eqn. \ref{eqn:sellar_formulation}.  
+    The graph utilizes the structure proposed by
+    Pate et. al \cite{graph_problem2013} and represents the complete problem formulation as
+    defined by the user. In a dependency graph, each component and all variable inputs and outputs of that component are
+    represented by nodes with directed edges between them describing their dependencies on each other.
+    Figure \ref{fig:sellar_graph} shows a sample graph for the Sellar Problem \cite{AIAA:sellar}
+    given in eqn. \ref{eqn:sellar_formulation}.
 
 
     \begin{align}
@@ -176,20 +176,20 @@
     In the original graph syntax, a single node is given for every variable. This holds true for the graph
     within OpenMDAO, with only one minor caveat. In the case of any hierarchical variables, such as arrays
     or VariableTrees, one variable node is created to represent the overall variable with additional nodes
-    created if any specific sub-variable is referenced (e.g., some slice of an array or some child variable from a 
-    VariableTree). Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. 
+    created if any specific sub-variable is referenced (e.g., some slice of an array or some child variable from a
+    VariableTree). Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables.
 
      \begin{figure}[!htb]\begin{center}
       xxxxxxx\\xxxxxxx\\xxxxxxx\\xxxxxxx\\xxxxxxx\\xxxxxxx\\
       \caption{ Example graph with child nodes for sub-variables \label{fig:subvars}}
     \end{center}\end{figure}
 
-    By representing hierarchical data as a single node, we help keep the overall size of the graph manageable 
-    when large chunks of data are being communicated. However, if some small sub-set of that data needs to be 
-    used somewhere it is not correct to indicate a dependence on the entire chunk of data. So in this case, a 
-    single new node representing the sub-variable is created with its own dependence on the parent variable. 
-    This book keeping becomes particularly important for when the graph is used to calculate derivatives or 
-    manage the partitioning of distributed data. 
+    By representing hierarchical data as a single node, we help keep the overall size of the graph manageable
+    when large chunks of data are being communicated. However, if some small sub-set of that data needs to be
+    used somewhere it is not correct to indicate a dependence on the entire chunk of data. So in this case, a
+    single new node representing the sub-variable is created with its own dependence on the parent variable.
+    This book keeping becomes particularly important for when the graph is used to calculate derivatives or
+    manage the partitioning of distributed data.
 
 
     \subsection{Determining Execution Order}
@@ -242,9 +242,9 @@
     have an impact on how any given model is solved. Firstly during normal execution, these cycles
     need to be converged with a numerical solver such as Gauss-Seidel or Newton based.
 
-    In addition these cycles are used to form the correct linear system to solve for system level coupled 
+    In addition these cycles are used to form the correct linear system to solve for system level coupled
     derivatives. The linear system used is built according to the methods developed by Martins and Hwang
-    for solving for derivatives in the general case with both direct and residual 
+    for solving for derivatives in the general case with both direct and residual
 
     components in the system \cite{Martins2012}.
 
@@ -252,6 +252,12 @@
     \subsection{Mixed Analytic and Finite Difference Gradients}
 
   \section{CADRE Problem Formulation}
+
+
+    \begin{figure}[!htb]\begin{center}
+      \includegraphics[width=1.1\textwidth]{images/CADRE.pdf}
+      \caption{ Dependency graph for the CADRE problem. \label{fig:cadre_graph}}
+    \end{center}\end{figure}
 
   \section{CADRE Results}
 
