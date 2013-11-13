@@ -123,39 +123,25 @@
 
   \section{Dependency Graph}
 
-    OpenMDAO maintains a central, monolithic, data connectivity graph between all 
-    variables and components in the model, called the dependency graph. The graph utilizes the structure proposed by 
-    Pate et. al \cite{graph_problem2013} and represents the complete problem formulation as 
-    defined by the user. 
+    OpenMDAO maintains a monolithic, data connectivity graph between all 
+    variables and components in the model, called the dependency graph.
+    Using efficient graph traversal algorithms, OpenMDAO provides a number of 
+    features which make it easier to implement large scale design problems. 
 
-    The main advantage of tight integration with a dependency graph is the availability of efficient
-    algorithms for performing a number of functions that are useful for solving an MDAO problem.
+    \begin{itemize}
+      \item Determination of component execution order via path finding.
+      \item Identification of interdisciplinary coupling through cycle detection.
+      \item Construction of a minimizing the size of linear system to solve for gradients.
+    \end{itemize}
 
-      1. Determination of component execution order.
-      2. Identification of interdisciplinary coupling.
-      3. Construction of a linear system to solve for gradients.
+    This section will describe the graph structure used to represent problem formulation in OpenMDAO, 
+    then discuss in detail how the graph is used to enable each of the above features. 
       
-    The OpenMDAO framework uses a dependency graph to determine component execution order and to
-    drive the process of invalidation, which finds the minimum set of components that needs to
-    be re-executed when a set of inputs change. (ref: last OpenMDAO paper.) A dependency graph
-    can also identify cycles in the graph, and hence a cycle in the dataflow that must be resolved
-    by a solver. Similarly, the graph can also be used to examine the potential for parallelism at
-    a component level.
-
-    The determination of driver subgraphs is a capability that will be investigated in this paper.
-    Consider an optimizer with n parameters, 1 objective, and m constraints. The relevant 
-    subgraph of this problem is the set of component disciplines and their variable connection that
-    lie within the subgraph between the parameters and the constraints and objective. This subgraph
-    contains the components that execute when the optimizer requests a function evaluation. It is
-    also useful for setting up and solving the coupled derivative system when the optimizer requests
-    a gradient evaluation. For calculation of the coupled derivative in adjoint mode, further
-    efficiency can be gained by using the subgraph that includes just the portion of the graph 
-    between a single constraint and the parameters. Similarly for forward mode, the subgraph would
-    include just the portion of the graph between a single parameter and the constraints/objective.
-
 
     \subsection{Graph Structure}
-    In a dependency graph each component and all variables of that component are 
+    The graph utilizes the structure proposed by 
+    Pate et. al \cite{graph_problem2013} and represents the complete problem formulation as 
+    defined by the user. In a dependency graph each component and all variables of that component are 
     represented by nodes with directed edges between them describing their dependencies on each other. 
     Figure \ref{fig:sellar_graph} shows a sample graph for the Sellar Problem \cite{AIAA:sellar} 
     given in eqn. \ref{eqn:sellar_formulation}.  
@@ -194,11 +180,31 @@
     This book keeping becomes particularly important for when the graph is used to calculate derivatives or 
     manage the partitioning of distributed data. 
 
-    
+    \subsection{Determining Execution Order}
+    The OpenMDAO framework uses a dependency graph to determine component execution order and to
+    drive the process of invalidation, which finds the minimum set of components that needs to
+    be re-executed when a set of inputs change. (ref: last OpenMDAO paper.) A dependency graph
+    can also identify cycles in the graph, and hence a cycle in the dataflow that must be resolved
+    by a solver. Similarly, the graph can also be used to examine the potential for parallelism at
+    a component level.
 
-
-    \subsection{Mixed Analytic and Finite Difference Gradients}
     \subsection{Relevant Variable Identification}
+    Given the dependency graph for any problem, in order to set up a design optimziation the user
+    must first specify 
+    The determination of driver subgraphs is a capability that will be investigated in this paper.
+    Consider an optimizer with n parameters, 1 objective, and m constraints. The relevant 
+    subgraph of this problem is the set of component disciplines and their variable connection that
+    lie within the subgraph between the parameters and the constraints and objective. This subgraph
+    contains the components that execute when the optimizer requests a function evaluation. It is
+    also useful for setting up and solving the coupled derivative system when the optimizer requests
+    a gradient evaluation. For calculation of the coupled derivative in adjoint mode, further
+    efficiency can be gained by using the subgraph that includes just the portion of the graph 
+    between a single constraint and the parameters. Similarly for forward mode, the subgraph would
+    include just the portion of the graph between a single parameter and the constraints/objective.
+
+    \subsection{Cycle Detection}
+    \subsection{Mixed Analytic and Finite Difference Gradients}
+    \subsection{Gradient Assembly}
 
   \section{CADRE Problem Formulation}
 
