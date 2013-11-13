@@ -73,10 +73,9 @@
     Many of today's the most interesting design problems involve very large design spaces with 100's or 1000's of
     design variables. Large design spaces are often approached through the use of gradient based optimization
     analytic derivatives to achieve highly scalable solution strategies. For instance, adjoint based gradient
-    methods have allowed CFD based shape optimization to tackle problems with 100's of design variables. [Cite Juan's Groups
-
-    work here]. Coupled Aero-structural optimization is another area where gradient based optimization methods have
-    been employed. [Cite Martins groups work here]. Although these problems have large design spaces,
+    methods have allowed CFD based shape optimization to tackle problems with 100's of design variables\cite{SU2_2013}. 
+    Coupled aero-structural optimization is another area where gradient based optimization methods have
+    been employed\cite{Kenway2012c, Haghighat:2011:ADO}. Although these problems have large design spaces,
     they include only a few disciplines (i.e. Geometry, Aerodynamics, Structures). The relative simplicity of
     the problem formulation make it feasible to use custom implementations tailored to a specific problem. Naturally however,
     this approach also limits the problem complexity that can be addressed with current MDAO methods.
@@ -272,7 +271,7 @@ Figure \ref{convergence} illustrates the convergence of the CADRE problem over t
 these iterations. The first row plots the
 value of the objective function, the total data downloaded over each design point. The objective
 function oscillated greatly over the course of the first half of the computed iterations, but
-stabilized by the 80th iteration near the value previously determined[cite CADRE paper]
+stabilized by the 80th iteration near the value previously determined \cite{CADRE2012}
 to be the optimal design.
 
 The second row plots the maximum value of each constraint across all design points at
