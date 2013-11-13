@@ -214,7 +214,7 @@
 
   \section{CADRE Results}
 
-The OpenMDAO implementation of the CADRE problem was executed on a Macbook Pro[specs]
+The OpenMDAO implementation of the CADRE problem was executed on a Macbook Pro (2.3 Ghz Core i7 processor, 4GB 1600 Mhz DDR3 memory, running OSX 10.8.5)
 over the course of two days, to a termination tolerance of $10^{-5}$. This tolerance
 was achieved within approximately 106 iterations, using the SNOPT\cite{gill2005snopt}
 optimizer.
@@ -251,9 +251,10 @@ and battery charge level over the half-day time period covered by the $4^{\textr
 \label{pt3_data_results}
 \end{figure}
 
-Figure \ref{pt3_data_results} shows plots of selected variables for the $4^{\textrm{th}}$ design points,
+Figure \ref{pt3_data_results} shows plots of selected variables for the $4^{\textrm{th}}$ design point,
 to illustrate the fidelity of the recovered solution. These variables are the communications bit rate ($D_r$), communications systems power level ($P_{comm}$), craft roll angle ($\gamma$),
-and battery charge level ($SOC$). These variables were each instantiated to uniform values
+and battery charge level ($SOC$). Prior to the optimization, these variables
+were each instantiated to uniform values
 (across all time points) of 0, 0, $\frac{\pi}{4}$, and 0 respectively. The optimizer, operating on
 OpenMDAO's graph formulation of the problem succeeded at converging each of these variables to the values
 shown, for each time point.
@@ -264,20 +265,14 @@ Maps\footnote{http://developers.google.com/maps/} and Google
 Earth\footnote{http://developers.google.com/earth/} APIs. The trajectories are
 represented as polygonal chain ("polyline") elements, colored according to the
 satellites communication bitrate with the ground station during the corresponding
-window of time.
-
-Each time point is represented by two separate polyline objects with endpoints
-at the location of the satellite at that moment in time. One polyline element terminates
-halfway between this location and the location at the preceding moment in time,
-and the other between this and the location at the next moment in time. This way,
-the colored line segments seen on the figures are appropriately centered on the
-locations determined by the time points when the data bit rate values were calculated
+window of time. Each colored line segment are centered on the locations
+determined by the time points when the data bit rate values were calculated
 by the OpenMDAO model.
 
 
 \begin{figure}
 \centering
-\includegraphics[width=0.9\textwidth]{images/pt3_gearth3.png}
+\includegraphics[width=0.8\textwidth]{images/pt3_gearth3.png}
 \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
 for the $4^{\textrm{th}}$ design point onto the surface of the Earth, illustrating the
 communication data rates near the ground station.}
@@ -287,7 +282,7 @@ communication data rates near the ground station.}
 
 \begin{figure}
 \centering
-\includegraphics[width=0.9\textwidth]{images/allpts_map_data.png}
+\includegraphics[width=0.8\textwidth]{images/allpts_map_data.png}
 \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
 for all 6 design points onto the surface of the Earth, illustrating the
 communication data rates near the ground station.}
@@ -297,7 +292,7 @@ communication data rates near the ground station.}
 
 \begin{figure}
 \centering
-\includegraphics[width=0.9\textwidth]{images/allpts_gearth2.png}
+\includegraphics[width=0.8\textwidth]{images/allpts_gearth2.png}
 \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
 for all 6 design points onto the surface of the Earth.}
 \label{pt3_g_earth}
