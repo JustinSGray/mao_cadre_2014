@@ -12,7 +12,14 @@
    \\
   {\normalsize\itshape
   NASA Glenn Research Center, Cleveland, OH}  \\
- }
+  John T. Hwang,%
+  \thanks{Ph.D. Candidate, Department of Aerospace Engineering, AIAA Student Member}
+  \ Joaquim R. R. A. Martins%
+  \thanks{Associate Professor, Department of Aerospace Engineering, AIAA Associate Fellow}
+  \\
+  {\normalsize\itshape
+   University of Michigan, Ann Arbor, Michigan, 48109, United States}
+}
 
 \AIAAconference{Multidisciplinary Design Optimization Specialist Conference}
 \AIAAcopyright{\AIAAcopyrightD{2012}}
@@ -135,7 +142,9 @@
     \end{itemize}
 
     This section will describe the graph structure used to represent problem formulation in OpenMDAO, 
-    then discuss in detail how the graph is used to enable each of the above features. 
+    then discuss in detail how graph traversal algorithms are used to provide features. OpenMDAO relies
+    on the NetworkX \cite{hagberg-2008-exploring} python package for implementations of each of 
+    the algorithms. 
       
 
     \subsection{Graph Structure}
@@ -188,25 +197,54 @@
     by a solver. Similarly, the graph can also be used to examine the potential for parallelism at
     a component level.
 
-    \subsection{Relevant Variable Identification}
+    \subsection{Relevant Set Identification and Usage}
     Given the dependency graph for any problem, in order to set up a design optimization the user
-    must first specify a set of design variables, objectives, and constraints. Using graph 
-    path finding algorithms, such as [insert network x algorithms we use here, with citations as we can find them]. 
+    must first specify a set of design variables, objectives, and constraints. Once those are given, 
+    the a shortest path between the design variables and the objectives and constraints can be identified. 
+    This path contains the set of relevant components and variables that make up a sub-graph of the full 
+    dependency graph that is necessary for the given problem formulation. This subgraph
+    contains all the components that execute when the optimizer requests a function evaluation. 
 
-    The determination of driver subgraphs is a capability that will be investigated in this paper.
-    Consider an optimizer with n parameters, 1 objective, and m constraints. The relevant 
-    subgraph of this problem is the set of component disciplines and their variable connection that
-    lie within the subgraph between the parameters and the constraints and objective. This subgraph
-    contains the components that execute when the optimizer requests a function evaluation. It is
-    also useful for setting up and solving the coupled derivative system when the optimizer requests
-    a gradient evaluation. For calculation of the coupled derivative in adjoint mode, further
-    efficiency can be gained by using the subgraph that includes just the portion of the graph 
-    between a single constraint and the parameters. Similarly for forward mode, the subgraph would
-    include just the portion of the graph between a single parameter and the constraints/objective.
+    It is also useful for setting up and solving the coupled derivative system when the optimizer requests
+    a gradient evaluation. Gradients are computed using Martins and Hwang's NSE method\cite{Martins2012}. This 
+    method constructs a single linear system which can solve for the total derivatives of any variable with 
+    respect to any other variable, given all of the partial derivatives. The linear system has the same dimension 
+    as the number of variables in your problem formulation. Since the cost of solving linear systems grows very 
+    quickly with the number of variables, it is highly desirable to shrink that number if at all possible. 
+    Although you could include the full set of variables from the entire dependency graph, any variables that do 
+    not appear in the relevant set would have no actual impact on the solution. By using the relevant set 
+    of variables identified by the sub-graph of any given problem, OpenMDAO can  
+    reduce the size of the linear system to its minimum possible size and improve the efficiency 
+    of solving for the necessary derivatives. 
 
-    \subsection{Cycle Detection}
+    OpenMDAO supports calculating derivatives in two ways: direct and adjoint. The direct method performs 
+    one linear solve for each design variable, and yields derivatives of all other variables with respect to 
+    to that one design variable. With the adjoint method, one linear solve is performed for each constraint and 
+    objective value, each one yielding the full gradient for that quantity of interest. Whether you use the forward 
+    or adjoint method of solving for derivatives, the relevant sub-graph for each linear solve performed should be 
+    kept as small as possible. So further efficiency gains can be made by calculating a relevant set for each 
+    of the individual linear solves. For example ... 
+
+
+    \subsection{Cycle Detection and Usage}
+    Pate et. al indicate that within a dependency graph, the presence of cycles indicates coupling between 
+    the components in the cycle \cite{graph_problem2013}. A cycle can consist of two or more components, and 
+    one component may be part of more than one cycle. 
+
+    In formal terms, cycles exist in a graph when a group of nodes are strongly connected. The NetworkX package 
+    provides an implementation of Tarjans algorithm for finding sets of strongly connected 
+    components\cite{tarjan1972depth,nuutila1994finding}. Once found, the presence of these cycles 
+    have an impact on how any given model is solved. Firstly during normal execution, these cycles 
+    need to be converged with a numerical solver such as Gauss-Seidel or Newton based. 
+
+    In addition these cycles are used to form the correct linear system to solve for system level coupled 
+    derivatives. The linear system used is build according to the methods developed by Martins and Hwang
+    for solving for derivatives in the general case with both direct and residual 
+    components in the system \cite{Martins2012}.
+
     \subsection{Mixed Analytic and Finite Difference Gradients}
     \subsection{Gradient Assembly}
+    \subsection{Partitioning of Distributed Data}
 
   \section{CADRE Problem Formulation}
 
