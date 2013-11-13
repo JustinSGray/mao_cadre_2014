@@ -196,7 +196,7 @@
 
     The OpenMDAO framework uses a dependency graph to determine component execution order and to
     drive the process of invalidation, which finds the minimum set of components that needs to
-    be re-executed when a set of inputs change. (ref: last OpenMDAO paper.) A dependency graph
+    be re-executed when a set of inputs change\cite{openmdao_derivatives}. A dependency graph
     can also identify cycles in the graph, and hence a cycle in the dataflow that must be resolved
     by a solver. Similarly, the graph can also be used to examine the potential for parallelism at
     the component level.
@@ -228,7 +228,7 @@
     objective value, each one yielding the full gradient for that quantity of interest. Whether you use the forward
     or adjoint method of solving for derivatives, the relevant sub-graph for each linear solve performed should be
     kept as small as possible. So further efficiency gains can be made by calculating a relevant set for each
-    of the individual linear solves. For example ...
+    of the individual linear solves. This relevant sub-graph will be
 
 
     \subsection{Cycle Detection and Usage}
@@ -245,12 +245,37 @@
     In addition these cycles are used to form the correct linear system to solve for system level coupled 
     derivatives. The linear system used is built according to the methods developed by Martins and Hwang
     for solving for derivatives in the general case with both direct and residual 
-
     components in the system \cite{Martins2012}.
 
     \subsection{Gradient Calculation}
+    
+    OpenMDAO can calculate a gradient between any set of input and output nodes in the
+    dependency graph by setting up the linear system derailed in Martins and Hwang. \cite{Martins2012}
+    The requested derivatives are calculated from the solution of the set of equations that is assembled
+    from the output-input derivatives of every component in the relevant graph. The problem objective
+    and constraint equations are also nodes in the graph, so are treated like any other components
+    that provide their own derivatives. Because this system of equations can be large, the full model
+    Jacobian is implemented as a linear operator, so that it never has to be stored entirely in memory. The
+    linear operator takes a vector as input, and returns the product of the Jacobian with that vector.
+    
+    For calculating the gradient, the graph is an essential partner. It provides the reduced set of 
+    component nodes and variable nodes that are both downstream of the design parameters
+    and upstream of the constraints and objectives. The graph also provides the further reduced
+    set that is affected by a single design parameter (for forward mode calculation), or that
+    affects a single constraint or objective (for adjoint mode calculation.)
+    
+    To illustrate this: (figure)
+    
     \subsection{Mixed Analytic and Finite Difference Gradients}
-
+    
+    Many multidisciplinary systems contain a mixture of components that can provide their analytic derivatives, and
+    those that cannot. OpenMDAO supports both of these types of component under the same umbrella of the
+    solution method. When a component provides no derivatives, then the component is finite-differenced in-place to
+    produce the derivatives that are used in the linear system of the full model. The dependency graph is also used
+    to find groups of connected components with no derivative defined so that they can be finite differenced as a single entity. 
+    
+    To illustrate this: (figure)
+    
   \section{CADRE Problem Formulation}
 
   \section{CADRE Results}
