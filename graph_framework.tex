@@ -253,6 +253,22 @@
 
   \section{CADRE Problem Formulation}
 
+    \begin{align}
+        \\\txt{max.} &\ \ \sum_{i=1}^6 D_i \notag
+        \\\txt{w.r.t.} & \ \ 0 \le I_{setpt} \le 4 \notag
+        \\     & \ \ 0 \le P_{comm} \le 25 \notag
+        \\     & \ \ 0 \le cellInstd \le 1 \notag
+        \\     & \ \ 0 \le finAngle \le \pi/2 \notag
+        \\     & \ \ 0 \le antAngle \le \pi \notag
+        \\     & \ \ 0.2 \le iSOC \le 1 \notag
+        \\\txt{s.t.} & \ \ I_{bat} - 5 \le 0 \notag
+        \\     & \ \ -10 - I_{bat} \le 0 \notag
+        \\     & \ \ 0.2 - SOC \le 0 \notag
+        \\     & \ \ SOC - 1 \le 0 \notag
+        \\     & \ \ fSOC - iSOC = 0 \notag
+        \label{eqn:sellar_formulation}
+    \end{align}
+
 
     \begin{figure}[!htb]\begin{center}
       \includegraphics[width=1.1\textwidth]{images/CADRE.pdf}
