@@ -257,17 +257,48 @@ and battery charge level ($SOC$). Prior to the optimization, these variables
 were each instantiated to uniform values
 (across all time points) of 0, 0, $\frac{\pi}{4}$, and 0 respectively. The optimizer, operating on
 OpenMDAO's graph formulation of the problem succeeded at converging each of these variables to the values
-shown, for each time point.
+shown, for each time point. Line of sight is seen to have been achieved in three short ranges of time near the
+beginning of the modeled half-day design point. Interestingly, though the data rate achieved in the second
+time period with affirmative line of sight is significantly higher than the other two periods, the optimizer
+converged to a solution that provided power to the communications system near uniformly for each of these
+three time periods.
+
+Figure \ref{pt3_data_results} shows that the craft roll angle, $\gamma$, roughly approximates a sine function
+with a wavelength of 90 minutes (the approximate orbital period of the satellite),
+with short term perturbations during the time
+periods where line of sight is gained with the ground station. That is, the optimizer successfully
+converged to a solution with the satellite continuously turned to maximize exposure to the sun,
+except when turning to point its antenna towards the ground station during times when
+communication is possible. This dynamic is also reflected in the battery state of charge ($SOC$)
+data plotting in the bottom row, with the battery losing charge quickly during
+communication with the ground station, but recharging while tracking with the sun.
 
 Further post processing of the data included automatic geographical rendering of the trajectories of
 the CADRE satellite for each of the 6 design points, using the Google
 Maps\footnote{http://developers.google.com/maps/} and Google
 Earth\footnote{http://developers.google.com/earth/} APIs. The trajectories are
 represented as polygonal chain ("polyline") elements, colored according to the
-satellites communication bitrate with the ground station during the corresponding
+satellites communication bit rate with the ground station during the corresponding
 window of time. Each colored line segment are centered on the locations
 determined by the time points when the data bit rate values were calculated
 by the OpenMDAO model.
+
+Figure \ref{pt3_g_earth} communications bit rate along the trajectories of the
+CADRE satellite during the $4^{\textrm{th}}$ design point. This can be compared
+directly with Figure \ref{pt3_data_results}, where one large spike in communications
+bit rate was preceded and then succeeded by two short time periods of lesser
+data rates. Plotted geographically, this is seen to be due to the procession of
+the satellites orbit, where the period of maximal data rate corresponds to a
+pass of the satellite directly over the ground station location. The proceeding and
+succeeding data rate spikes correspond to passes over the near Atlantic and
+Rocky Mountain regions, respectively.
+
+
+Figure \ref{allpt_flatmap} similarly shows trajectory and bit rate data plotted
+from all six design points, centered on the United States. The orbital passes
+that are close enough to the ground station for communications can all be seen.
+Figure \ref{allpt_g_earth} zooms this view out to show coverage of the trajectories
+of all design points across the Earth.
 
 
 \begin{figure}
@@ -286,7 +317,7 @@ communication data rates near the ground station.}
 \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
 for all 6 design points onto the surface of the Earth, illustrating the
 communication data rates near the ground station.}
-\label{pt3_g_earth}
+\label{allpt_flatmap}
 \end{figure}
 
 
@@ -295,7 +326,7 @@ communication data rates near the ground station.}
 \includegraphics[width=0.8\textwidth]{images/allpts_gearth2.png}
 \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
 for all 6 design points onto the surface of the Earth.}
-\label{pt3_g_earth}
+\label{allpt_g_earth}
 \end{figure}
 
 
