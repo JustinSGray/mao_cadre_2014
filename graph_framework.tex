@@ -316,8 +316,9 @@
     \begin{figure}
     \centering
     \includegraphics[width=0.99\textwidth]{images/opt.png}
-    \caption[width=0.22\textwidth]{Convergence of the CADRE problem.}
+    \caption[width=0.22\textwidth]{Convergence of the CADRE problem.
     \label{convergence}
+    }
     \end{figure}
 
 
@@ -341,8 +342,9 @@
     \centering
     \includegraphics[width=0.8\textwidth]{images/pt_3_data.png}
     \caption[width=0.4\textwidth]{Plots of the bit rate, communications systems power, craft roll angle,
-    and battery charge level over the half-day time period covered by the $4^{\textrm{th}}$ design point.}
+    and battery charge level over the half-day time period covered by the $4^{\textrm{th}}$ design point.
     \label{pt3_data_results}
+    }
     \end{figure}
 
     Figure \ref{pt3_data_results} shows plots of selected variables for the $4^{\textrm{th}}$ design point,
@@ -401,8 +403,10 @@
     \includegraphics[width=0.8\textwidth]{images/pt3_gearth3.png}
     \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
     for the $4^{\textrm{th}}$ design point onto the surface of the Earth, illustrating the
-    communication data rates near the ground station.}
+    communication data rates near the ground station.
     \label{pt3_g_earth}
+    }
+    
     \end{figure}
 
 
@@ -411,8 +415,10 @@
     \includegraphics[width=0.8\textwidth]{images/allpts_map_data.png}
     \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
     for all 6 design points onto the surface of the Earth, illustrating the
-    communication data rates near the ground station.}
+    communication data rates near the ground station.
     \label{allpt_flatmap}
+    }
+    
     \end{figure}
 
 
@@ -420,16 +426,59 @@
     \centering
     \includegraphics[width=0.8\textwidth]{images/allpts_gearth2.png}
     \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
-    for all 6 design points onto the surface of the Earth.}
+    for all 6 design points onto the surface of the Earth.
     \label{allpt_g_earth}
+    }
+    
     \end{figure}
 
 
   \section{Aero-Structural Problem Formulation}
 
+  A typical formulation of an aero-structural problem represents it with two disciplines: aerodynamics and structures. 
+  However, in order to compose a complete aero-structural problem many other tools and methods are needed beyond the 
+  fundamental engineering analyses. For example A geometry tool is needed in order to generate the physical representations 
+  of a wing for different combinations of the design variables and a method is needed to compute the loads and displacements 
+  transfered between the CFD and FEA analyses. These additional tools can be grouped together with the aerodynamics and 
+  structures disciplines, in order to simplify the problem formulation and make implementation more tractable. This also 
+  causes the implementation to be significantly less flexible. 
+
+  By taking advantage of the capabilities of OpenMDAO to manage the complexity of data exchange and gradient construction 
+  for a complex problem formulation, it is possible to break the aero-structural problem up into more granular components 
+  and construct a more flexible implementation. For this work the problem is broken down into 15 disciplines, 
+  shown in Figure \ref{fig:aero-struct-xdsm}. 
+
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/allpts_map_data.png}
+    \caption[width=0.4\textwidth]{Aero-structural problem formulation given in XDSM form
+    \label{fig:aero-struct-xdsm}
+    }
+  \end{figure}
+
+  Although this problem formulation is more complex, breaking the problem up in this manner offers some significant 
+  practical advantages for implementation. Each discipline is smaller and more self-contained, which makes it simpler 
+  and easier to develop and test. 
+
+  This problem formulation is ultimately the same as the one solved by Kenway and Martins\cite{Kenway2012c} in their work on 
+  multi-point aero-elastic design of the CRM wing. 
+
   \section{Aero-Structural Results}
 
+  The aero-structural problem was able to be executed successfully within OpenMDAO, using the new problem formulation. The results 
+  match well will those achieved in the original work by Kenway and Martins. In addition the overall computational performance of the 
+  implementation in OpenMDAO also compares well against the original work. OpenMDAO does not provide any significant overhead 
+  to the analysis. 
+
   \section{Conclusion}
+
+  This work demonstrates how a graph-based approach to problem formulation compliments and enhances the benefits of gradient based
+  optimization. The graph provides a proper structure to handle the necessary bookkeeping to automatically implement complex 
+  problem formulations while making use of analytic gradients. By implementing this graph based approach in OpenMDAO, the framework 
+  can alleviate the responsibilities for such bookkeeping from the user entirely which dramatically simplifies implementation. 
+
+  The two problems examined in this work demonstrate that a single framework can operate efficiently and effectively on a wide range 
+  of large-scale problems. 
 
   \bibliography{references}
 
