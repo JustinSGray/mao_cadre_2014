@@ -73,7 +73,7 @@
     Many of today's the most interesting design problems involve very large design spaces with 100's or 1000's of
     design variables. Large design spaces are often approached through the use of gradient based optimization
     analytic derivatives to achieve highly scalable solution strategies. For instance, adjoint based gradient
-    methods have allowed CFD based shape optimization to tackle problems with 100's of design variables\cite{SU2_2013}. 
+    methods have allowed CFD based shape optimization to tackle problems with 100's of design variables\cite{SU2_2013}.
     Coupled aero-structural optimization is another area where gradient based optimization methods have
     been employed\cite{Kenway2012c, Haghighat:2011:ADO}. Although these problems have large design spaces,
     they include only a few disciplines (i.e. Geometry, Aerodynamics, Structures). The relative simplicity of
@@ -86,13 +86,13 @@
     analytic derivatives for at the system level, even if each discipline could provide its own partial derivatives. So many
     problems are solved using a finite difference approach, which restricts the size of the design space.
 
-    If you placed complexity of the problem formulation on the Y-axis and computational complexity on the X-axis, then 
-    the complexity spectrum resembles the cartoon in Figure \ref{fig:complexity_cartoon}. 
-    In this diagram, the gap along the 45 degree line between the axes is indicative of the bifurcation 
+    If you placed complexity of the problem formulation on the Y-axis and computational complexity on the X-axis, then
+    the complexity spectrum resembles the cartoon in Figure \ref{fig:complexity_cartoon}.
+    In this diagram, the gap along the 45 degree line between the axes is indicative of the bifurcation
     in methods used to solve each type of problem currently. This gap begs the
-    question, ``How should you appraoch a problem of medium complexity and medium fidelity?'' 
-    We propose that the answer to this dilemma is to develop a more general manner of 
-    implementing MDAO problems that can be applied to any problem across the entire complexity spectrum. 
+    question, ``How should you appraoch a problem of medium complexity and medium fidelity?''
+    We propose that the answer to this dilemma is to develop a more general manner of
+    implementing MDAO problems that can be applied to any problem across the entire complexity spectrum.
 
     \begin{figure}[!hbt]\begin{center}
       \includegraphics[width=.5\textwidth]{images/complexity_cartoon}
@@ -100,7 +100,7 @@
     \end{center}\end{figure}
 
     In this work we demonstrate how OpenMDAO, an open-source framework, provides such a general
-    solution to constructing and solving problems from across the complexity spectrum with large design spaces 
+    solution to constructing and solving problems from across the complexity spectrum with large design spaces
     using the same MDAO methods commonly applied to the the shape optimization and aero-structural optimization
     problems. OpenMDAO achieves this by providing three key features:
 
@@ -110,15 +110,15 @@
       \item Efficient operation in a high performance computing environment with distributed data
     \end{enumerate}
 
-    To demonstrate these capabilities, we present two different problem solved with 
-    the OpenMDAO framework. The fist problem is the design of a small satellite 
+    To demonstrate these capabilities, we present two different problem solved with
+    the OpenMDAO framework. The fist problem is the design of a small satellite
     platform for taking weather measurements in the thermosphere, called CADRE. The CADRE problem has a
-    medium problem complexity with about 20 disciplines and also medium computational complexity. 
-    This problem demonstrates that OpenMDAO can efficiently solve problems with massive design spaced and 
-    medium complexity. The second problem is an aero-structural design of 
-    the Common Research Model wing, using CFD and FEA. This problem has very high computational 
-    complexity and shows that OpenMDAO can be used effectively on problems that use higher fidelity 
-    simulations, parallel execution, and distributed data. 
+    medium problem complexity with about 20 disciplines and also medium computational complexity.
+    This problem demonstrates that OpenMDAO can efficiently solve problems with massive design spaced and
+    medium complexity. The second problem is an aero-structural design of
+    the Common Research Model wing, using CFD and FEA. This problem has very high computational
+    complexity and shows that OpenMDAO can be used effectively on problems that use higher fidelity
+    simulations, parallel execution, and distributed data.
 
   \section{Dependency Graph}
 
@@ -166,7 +166,7 @@
     In the original graph syntax, a single node is given for every variable. This holds true for the graph
     within OpenMDAO, with only one minor caveat. In the case of any hierarchical variables, such as arrays
     or VariableTrees, one variable node is created to represent the overall variable with additional nodes
-    created if any specific sub-variable is referenced (e.g., some slice of an array or some child variable from a 
+    created if any specific sub-variable is referenced (e.g., some slice of an array or some child variable from a
     VariableTree). Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. Here,
     both outputs A.x and A.y are array variables. The full array A.x is connected to B.x while a single element
     of A.y is connected to the scalar B.z.
@@ -181,19 +181,19 @@
     used somewhere it is not correct to indicate a dependence on the entire chunk of data. So in this case, a
     single new node representing the sub-variable is created with its own dependence on the parent variable.
     This book keeping becomes particularly important for when the graph is used to calculate derivatives or
-    manage the partitioning of distributed data. Both problems contain large design spaces. The CADRE problem 
-    involves about 25000 design variables, and the aero-structural problem involves about 200. 
-    Together these problems demonstrate how OpenMDAO can simplify the process of implementing difficult 
-    design problems with large design spaces and varying kinds of complexity. 
+    manage the partitioning of distributed data. Both problems contain large design spaces. The CADRE problem
+    involves about 25000 design variables, and the aero-structural problem involves about 200.
+    Together these problems demonstrate how OpenMDAO can simplify the process of implementing difficult
+    design problems with large design spaces and varying kinds of complexity.
 
 
     \subsection{Determining Execution Order}
 
-    The OpenMDAO framework uses its dependency graph to determine component execution order by finding the 
-    shortest path from the design variables to the quantities of interest for any given model\cite{openmdao_derivatives}. 
+    The OpenMDAO framework uses its dependency graph to determine component execution order by finding the
+    shortest path from the design variables to the quantities of interest for any given model\cite{openmdao_derivatives}.
     This path contains the set of relevant components and variables that make up a sub-graph of the full
-    dependency graph. During execution, only the components in this graph will be executed and they will be executed 
-    in the order prescribed by following the graph path. 
+    dependency graph. During execution, only the components in this graph will be executed and they will be executed
+    in the order prescribed by following the graph path.
 
     \subsection{Cycle Detection and Usage}
     Pate et. al indicate that within a dependency graph, the presence of cycles indicates coupling between
@@ -204,35 +204,35 @@
     provides an implementation of Tarjans algorithm for finding sets of strongly connected
     components\cite{tarjan1972depth,nuutila1994finding}. Once found, the presence of these cycles
     have an impact on how any given model is solved. Firstly during normal execution, these cycles
-    need to be converged with a numerical solver such as Gauss-Seidel or Newton based. 
-    In addition these cycles need to be accounted for when solving for the gradients 
+    need to be converged with a numerical solver such as Gauss-Seidel or Newton based.
+    In addition these cycles need to be accounted for when solving for the gradients
 
     \subsection{Gradient Calculation}
-    
+
     OpenMDAO can calculate a gradient between any set of input and output nodes in the
-    dependency graph by setting up the linear system devised by Martins and Hwang \cite{Martins2012} in their 
-    work developing a unified theory for derivatives computation. 
+    dependency graph by setting up the linear system devised by Martins and Hwang \cite{Martins2012} in their
+    work developing a unified theory for derivatives computation.
     The requested derivatives are calculated from the solution of the set of equations that is assembled
-    from the output-input derivatives of all the components. The number of equations 
-    is determined by the number of variables represented the graph, which means that the linear 
-    system can get very large. To allow for such large systems the full model Jacobian is implemented as 
+    from the output-input derivatives of all the components. The number of equations
+    is determined by the number of variables represented the graph, which means that the linear
+    system can get very large. To allow for such large systems the full model Jacobian is implemented as
     a linear operator, so that it never has to be stored entirely in memory. The
     linear operator takes a vector as input, and returns the product of the Jacobian with that vector.
-    
-    In Martins and Hwang's original work, they considered all possible variables in their linear system. 
-    By using the dependency graph, OpenMDAO is able to achieve significant reductions computational cost of 
-    solving the linear system. Using the same path finding algorithm for determining execution order, 
+
+    In Martins and Hwang's original work, they considered all possible variables in their linear system.
+    By using the dependency graph, OpenMDAO is able to achieve significant reductions computational cost of
+    solving the linear system. Using the same path finding algorithm for determining execution order,
     OpenMDAO finds the reduced set of component nodes and variable nodes that are both downstream of the design parameters
     and upstream of a specific quantity of interest. One such sub-graph is found for each linear solve necessary to
-    find all the derivatives of the system. It is possible that each sub-graph will contain different sets 
-    of variables and components depending on the structure of the graph. Hence, each linear solve step 
-    is kept to its minimum possible size to keep. 
+    find all the derivatives of the system. It is possible that each sub-graph will contain different sets
+    of variables and components depending on the structure of the graph. Hence, each linear solve step
+    is kept to its minimum possible size to keep.
 
     For example, the model in Figure \ref{fig:graph2} contains 5 components that run during an analysis. If we
     want to optimize this model with the given parameter and objective, only the highlighted component nodes
     will be in the reduced dependency graph, and thus only the highlighted variables appear in the linear
     system.
-    
+
     \begin{figure}[!htb]\begin{center}
       \includegraphics[width=.8\textwidth]{images/Graph2}
       \caption{ The reduced graph for the derivatives calculation includes Comps 1, 3, and 5 with their interconnecting variables. \label{fig:graph2}}
@@ -241,47 +241,54 @@
     \section{Direct vs Adjoint Methods}
 
     OpenMDAO supports calculating derivatives in two ways: direct and adjoint. The direct method performs
-    one linear solve for each design variable. The adjoint method performs one linear solve per each objective 
-    and constraints. Hence, if you have more design variables than quantities of interest (as if often the case), 
-    the adjoint method will require far fewer solves of the linear system. If you have fewer design variables then 
-    objectives and constraints the forward mode is preferable. 
+    one linear solve for each design variable. The adjoint method performs one linear solve per each objective
+    and constraints. Hence, if you have more design variables than quantities of interest (as if often the case),
+    the adjoint method will require far fewer solves of the linear system. If you have fewer design variables then
+    objectives and constraints the forward mode is preferable.
 
     OpenMDAO allows users to specify analytic derivatives of components by declaring one or more of the following three
-    methods: 
+    methods:
 
     \begin{itemize}
         \item provideJ(ins, outs, Jacobian)
         \item apply\_deriv(input\_vector, result\_vector)
         \item apply\_derivT(input\_vector, result\_vector)
     \end{itemize}
-    
-    The provideJ method is the simplest method to implement, and also the most flexible. The user simply gives the framework the 
-    Jacobian and the order of the columns and rows in that Jacobian. With that information, OpenMDAO can automatically 
-    implement either the forward or adjoint derivatives methods. This flexibility comes with some computational cost however. 
-    Although at the overall system level the Jacobian is provided as a linear operator, that linear operator is built out 
-    of the set of component Jacobians which are all stored in memory. If your component has relatively few inputs and outputs 
-    (on the order of 10's), then this cost is not likely to be significant. However, as the scale of the components grows, 
-    the other two functions will offer better efficiency. 
 
-    The two methods apply\_deriv and apply\_derivT implement Jacobian linear operators at 
-    the component level for the direct and adjoint methods respectively. So the user must provide both if they 
-    want the component to be able to operate in both forward and adjoint modes. If the user prefers one method over 
-    the other, they can choose to only implement one or the other. When both methods are present OpenMDAO will 
-    attempt to make an intelligent choice about whether to use the forward or adjoint method based on the number 
-    of variables vs objectives and constraints. 
+    The provideJ method is the simplest method to implement, and also the most flexible. The user simply gives the framework the
+    Jacobian and the order of the columns and rows in that Jacobian. With that information, OpenMDAO can automatically
+    implement either the forward or adjoint derivatives methods. This flexibility comes with some computational cost however.
+    Although at the overall system level the Jacobian is provided as a linear operator, that linear operator is built out
+    of the set of component Jacobians which are all stored in memory. If your component has relatively few inputs and outputs
+    (on the order of 10's), then this cost is not likely to be significant. However, as the scale of the components grows,
+    the other two functions will offer better efficiency.
 
-    
+    The two methods apply\_deriv and apply\_derivT implement Jacobian linear operators at
+    the component level for the direct and adjoint methods respectively. So the user must provide both if they
+    want the component to be able to operate in both forward and adjoint modes. If the user prefers one method over
+    the other, they can choose to only implement one or the other. When both methods are present OpenMDAO will
+    attempt to make an intelligent choice about whether to use the forward or adjoint method based on the number
+    of variables vs objectives and constraints.
+
+
     \subsection{Mixed Analytic and Finite Difference Gradients}
-    
+
     Many multidisciplinary systems contain a mixture of components that can provide their analytic derivatives, and
     those that cannot. OpenMDAO supports both of these types of component under the same umbrella of the
     solution method. When a component provides no derivatives, then the component is finite-differenced in-place to
     produce the derivatives that are used in the linear system of the full model. The dependency graph is also used
-    to find groups of connected components with no derivative defined so that they can be finite differenced as a single entity. 
-    
+    to find groups of connected components with no derivative defined so that they can be finite differenced as a single entity.
+
   \section{CADRE Problem Formulation}
 
-  The CADRE problem represents a class of problems with medium complexity and medium fidelity. 
+  CADRE (Cubesat investigating Atmospheric Density Response to Extreme driving)
+  is a mission funded by the National Science Foundation to study the
+  response of the thermosphere to auroral phenomena\cite{cutler2011cubesat}.
+
+  The CADRE problem represents a class of problems with medium complexity and medium fidelity.
+  A graph-free gradient based approach at multidisciplinary optimization of the CADRE
+  problem has previously been used successfully\cite{CADRE2012}. We have implemented
+  the same problem formulation using OpenMDAO.
 
     \begin{align}
         \\\txt{max.} &\ \ \sum_{i=1}^6 D_i \notag
@@ -307,7 +314,7 @@
 
   \section{CADRE Results}
 
-    The OpenMDAO implementation of the CADRE problem was executed on a 
+    The OpenMDAO implementation of the CADRE problem was executed on a
     Macbook Pro (2.3 Ghz Core i7 processor, 4GB 1600 Mhz DDR3 memory, running OSX 10.8.5)
     over the course of two days, to a termination tolerance of $10^{-5}$. This tolerance
     was achieved within approximately 106 iterations, using the SNOPT\cite{gill2005snopt}
@@ -346,7 +353,7 @@
     \end{figure}
 
     Figure \ref{pt3_data_results} shows plots of selected variables for the $4^{\textrm{th}}$ design point,
-    to illustrate the fidelity of the recovered solution. These variables are the communications 
+    to illustrate the fidelity of the recovered solution. These variables are the communications
     bit rate ($D_r$), communications systems power level ($P_{comm}$), craft roll angle ($\gamma$),
     and battery charge level ($SOC$). Prior to the optimization, these variables
     were each instantiated to uniform values
@@ -356,7 +363,8 @@
     beginning of the modeled half-day design point. Interestingly, though the data rate achieved in the second
     time period with affirmative line of sight is significantly higher than the other two periods, the optimizer
     converged to a solution that provided power to the communications system near uniformly for each of these
-    three time periods.
+    three time periods. This is likely due to the battery discharge rate and SOC constraints limiting
+    the power which may be delivered to the communications system.
 
     Figure \ref{pt3_data_results} shows that the craft roll angle, $\gamma$, roughly approximates a sine function
     with a wavelength of 90 minutes (the approximate orbital period of the satellite),
@@ -378,7 +386,7 @@
     determined by the time points when the data bit rate values were calculated
     by the OpenMDAO model.
 
-    Figure \ref{pt3_g_earth} communications bit rate along the trajectories of the
+    Figure \ref{pt3_g_earth} shows the communications bit rate along the trajectories of the
     CADRE satellite during the $4^{\textrm{th}}$ design point. This can be compared
     directly with Figure \ref{pt3_data_results}, where one large spike in communications
     bit rate was preceded and then succeeded by two short time periods of lesser
