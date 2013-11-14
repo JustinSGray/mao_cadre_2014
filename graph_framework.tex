@@ -93,7 +93,7 @@
     dilemma is to develop a more general manner of implementing MDAO problems that can be applied to any problem across the entire
     space of complexity and fidelity.
 
-    \begin{figure}[!htb]\begin{center}
+    \begin{figure}[!hbt]\begin{center}
       \includegraphics[width=.5\textwidth]{images/complexity_cartoon}
       \caption{ Notional spectrum of design problems currently being addressed. \label{fig:complexity_cartoon}}
     \end{center}\end{figure}
@@ -193,42 +193,11 @@
 
     \subsection{Determining Execution Order}
 
-    The OpenMDAO framework uses a dependency graph to determine component execution order and to
-    drive the process of invalidation, which finds the minimum set of components that needs to
-    be re-executed when a set of inputs change. (ref: last OpenMDAO paper.) A dependency graph
-    can also identify cycles in the graph, and hence a cycle in the dataflow that must be resolved
-    by a solver. Similarly, the graph can also be used to examine the potential for parallelism at
-    the component level.
-
-    \subsection{Relevant Set Identification and Usage}
-    Given the dependency graph for any problem, in order to set up a design optimization the user
-
-    must first specify a set of design variables, objectives, and constraints. Once those are given,
-    the a shortest path between the design variables and the objectives and constraints can be identified.
+    The OpenMDAO framework uses its dependency graph to determine component execution order by finding the 
+    shortest path from the design variables to the quantities of interest for any given model\cite{openmdao_derivatives}. 
     This path contains the set of relevant components and variables that make up a sub-graph of the full
-    dependency graph that is necessary for the given problem formulation. This subgraph
-    contains all the components that execute when the optimizer requests a function evaluation.
-
-    It is also useful for setting up and solving the coupled derivative system when the optimizer requests
-    a gradient evaluation. Gradients are computed using Martins and Hwang's NSE method\cite{Martins2012}. This
-    method constructs a single linear system which can solve for the total derivatives of any variable with
-    respect to any other variable, given all of the partial derivatives. The linear system has the same dimension
-    as the number of variables in your problem formulation. Since the cost of solving linear systems grows very
-    quickly with the number of variables, it is highly desirable to shrink that number if at all possible.
-    Although you could include the full set of variables from the entire dependency graph, any variables that do
-    not appear in the relevant set would have no actual impact on the solution. By using the relevant set
-    of variables identified by the sub-graph of any given problem, OpenMDAO can
-    reduce the size of the linear system to its minimum possible size and improve the efficiency
-    of solving for the necessary derivatives.
-
-    OpenMDAO supports calculating derivatives in two ways: direct and adjoint. The direct method performs
-    one linear solve for each design variable, and yields derivatives of all other variables with respect to
-    to that one design variable. With the adjoint method, one linear solve is performed for each constraint and
-    objective value, each one yielding the full gradient for that quantity of interest. Whether you use the forward
-    or adjoint method of solving for derivatives, the relevant sub-graph for each linear solve performed should be
-    kept as small as possible. So further efficiency gains can be made by calculating a relevant set for each
-    of the individual linear solves. For example ...
-
+    dependency graph. During execution, only the components in this graph will be executed and they will be executed 
+    in the order prescribed by following the graph path. 
 
     \subsection{Cycle Detection and Usage}
     Pate et. al indicate that within a dependency graph, the presence of cycles indicates coupling between
@@ -239,17 +208,72 @@
     provides an implementation of Tarjans algorithm for finding sets of strongly connected
     components\cite{tarjan1972depth,nuutila1994finding}. Once found, the presence of these cycles
     have an impact on how any given model is solved. Firstly during normal execution, these cycles
-    need to be converged with a numerical solver such as Gauss-Seidel or Newton based.
-
-    In addition these cycles are used to form the correct linear system to solve for system level coupled
-    derivatives. The linear system used is built according to the methods developed by Martins and Hwang
-    for solving for derivatives in the general case with both direct and residual
-
-    components in the system \cite{Martins2012}.
+    need to be converged with a numerical solver such as Gauss-Seidel or Newton based. 
+    In addition these cycles need to be accounted for when solving for the gradients 
 
     \subsection{Gradient Calculation}
-    \subsection{Mixed Analytic and Finite Difference Gradients}
+    
+    OpenMDAO can calculate a gradient between any set of input and output nodes in the
+    dependency graph by setting up the linear system devised by Martins and Hwang \cite{Martins2012} in their 
+    work developing a unified theory for derivatives computation. 
+    The requested derivatives are calculated from the solution of the set of equations that is assembled
+    from the output-input derivatives of all the components. The number of equations 
+    is determined by the number of variables represented the graph, which means that the linear 
+    system can get very large. To allow for such large systems the full model Jacobian is implemented as 
+    a linear operator, so that it never has to be stored entirely in memory. The
+    linear operator takes a vector as input, and returns the product of the Jacobian with that vector.
+    
+    In Martins and Hwang's original work, they considered all possible variables in their linear system. 
+    By using the dependency graph, OpenMDAO is able to achieve significant reductions computational cost of 
+    solving the linear system. Using the same path finding algorithm for determining execution order, 
+    OpenMDAO finds the reduced set of component nodes and variable nodes that are both downstream of the design parameters
+    and upstream of a specific quantity of interest. One such sub-graph is found for each linear solve necessary to
+    find all the derivatives of the system. It is possible that each sub-graph will contain different sets 
+    of variables and components depending on the structure of the graph. Hence, each linear solve step 
+    is kept to its minimum possible size to keep. 
 
+    \subject(Direct vs Adjoint Methods)
+
+    OpenMDAO supports calculating derivatives in two ways: direct and adjoint. The direct method performs
+    one linear solve for each design variable. The adjoint method performs one linear solve per each objective 
+    and constraints. Hence, if you have more design variables than quantities of interest (as if often the case), 
+    the adjoint method will require far fewer solves of the linear system. If you have fewer design variables then 
+    objectives and constraints the forward mode is preferable. 
+
+    OpenMDAO allows users to specify analytic derivatives of components by declaring one or more of the following three
+    methods: 
+
+    \begin{itemize}
+        \item provideJ(ins, outs, Jacobian)
+        \item apply_deriv(input_vector, result_vector)
+        \item apply_derivT(input_vector, result_vector)
+    \end{itemize}
+    
+    The provideJ method is the simplest method to implement, and also the most flexible. The user simply gives the framework the 
+    Jacobian and the order of the columns and rows in that Jacobian. With that information, OpenMDAO can automatically 
+    implement either the forward or adjoint derivatives methods. This flexibility comes with some computational cost however. 
+    Although at the overall system level the Jacobian is provided as a linear operator, that linear operator is built out 
+    of the set of component Jacobians which are all stored in memory. If your component has relatively few inputs and outputs 
+    (on the order of 10's), then this cost is not likely to be significant. However, as the scale of the components grows, 
+    the other two functions will offer better efficiency. 
+
+    The two methods apply_deriv and apply_derivT implement Jacobian linear operators at 
+    the component level for the direct and adjoint methods respectively. So the user must provide both if they 
+    want the component to be able to operate in both forward and adjoint modes. If the user prefers one method over 
+    the other, they can choose to only implement one or the other. When both methods are present OpenMDAO will 
+    attempt to make an intelligent choice about whether to use the forward or adjoint method based on the number 
+    of variables vs objectives and constraints. 
+    
+    \subsection{Mixed Analytic and Finite Difference Gradients}
+    
+    Many multidisciplinary systems contain a mixture of components that can provide their analytic derivatives, and
+    those that cannot. OpenMDAO supports both of these types of component under the same umbrella of the
+    solution method. When a component provides no derivatives, then the component is finite-differenced in-place to
+    produce the derivatives that are used in the linear system of the full model. The dependency graph is also used
+    to find groups of connected components with no derivative defined so that they can be finite differenced as a single entity. 
+    
+    To illustrate this: (figure)
+    
   \section{CADRE Problem Formulation}
 
     \begin{align}
@@ -276,120 +300,122 @@
 
   \section{CADRE Results}
 
-The OpenMDAO implementation of the CADRE problem was executed on a Macbook Pro (2.3 Ghz Core i7 processor, 4GB 1600 Mhz DDR3 memory, running OSX 10.8.5)
-over the course of two days, to a termination tolerance of $10^{-5}$. This tolerance
-was achieved within approximately 106 iterations, using the SNOPT\cite{gill2005snopt}
-optimizer.
+  The OpenMDAO implementation of the CADRE problem was executed on a 
+  Macbook Pro (2.3 Ghz Core i7 processor, 4GB 1600 Mhz DDR3 memory, running OSX 10.8.5)
+  over the course of two days, to a termination tolerance of $10^{-5}$. This tolerance
+  was achieved within approximately 106 iterations, using the SNOPT\cite{gill2005snopt}
+  optimizer.
 
-\begin{figure}
-\centering
-\includegraphics[width=0.99\textwidth]{images/opt.png}
-\caption[width=0.22\textwidth]{Convergence of the CADRE problem.}
-\label{convergence}
-\end{figure}
-
-
-Figure \ref{convergence} illustrates the convergence of the CADRE problem over the course of
-these iterations. The first row plots the
-value of the objective function, the total data downloaded over each design point. The objective
-function oscillated greatly over the course of the first half of the computed iterations, but
-stabilized by the 80th iteration near the value previously determined \cite{CADRE2012}
-to be the optimal design.
-
-The second row plots the maximum value of each constraint across all design points at
-each iteration. As all of the problem constraint are non-positive for a feasible design,
-this can be taken as a cursory measure of overall problem feasibility.
-The third row plots the maximum value of each constraint across each of the design points,
-but separated according to specific constraint type. These two plots both indicate that the
-oscillatory behavior of the objective function coincided with a steady decrease in design
-infeasibility. Once a feasible state was reached (near the 50th iteration), the optimizer
-began refining the design towards a more favorable value of the objective function.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.8\textwidth]{images/pt_3_data.png}
-\caption[width=0.4\textwidth]{Plots of the bit rate, communications systems power, craft roll angle,
-and battery charge level over the half-day time period covered by the $4^{\textrm{th}}$ design point.}
-\label{pt3_data_results}
-\end{figure}
-
-Figure \ref{pt3_data_results} shows plots of selected variables for the $4^{\textrm{th}}$ design point,
-to illustrate the fidelity of the recovered solution. These variables are the communications bit rate ($D_r$), communications systems power level ($P_{comm}$), craft roll angle ($\gamma$),
-and battery charge level ($SOC$). Prior to the optimization, these variables
-were each instantiated to uniform values
-(across all time points) of 0, 0, $\frac{\pi}{4}$, and 0 respectively. The optimizer, operating on
-OpenMDAO's graph formulation of the problem succeeded at converging each of these variables to the values
-shown, for each time point. Line of sight is seen to have been achieved in three short ranges of time near the
-beginning of the modeled half-day design point. Interestingly, though the data rate achieved in the second
-time period with affirmative line of sight is significantly higher than the other two periods, the optimizer
-converged to a solution that provided power to the communications system near uniformly for each of these
-three time periods.
-
-Figure \ref{pt3_data_results} shows that the craft roll angle, $\gamma$, roughly approximates a sine function
-with a wavelength of 90 minutes (the approximate orbital period of the satellite),
-with short term perturbations during the time
-periods where line of sight is gained with the ground station. That is, the optimizer successfully
-converged to a solution with the satellite continuously turned to maximize exposure to the sun,
-except when turning to point its antenna towards the ground station during times when
-communication is possible. This dynamic is also reflected in the battery state of charge ($SOC$)
-data plotting in the bottom row, with the battery losing charge quickly during
-communication with the ground station, but recharging while tracking with the sun.
-
-Further post processing of the data included automatic geographical rendering of the trajectories of
-the CADRE satellite for each of the 6 design points, using the Google
-Maps\footnote{http://developers.google.com/maps/} and Google
-Earth\footnote{http://developers.google.com/earth/} APIs. The trajectories are
-represented as polygonal chain ("polyline") elements, colored according to the
-satellites communication bit rate with the ground station during the corresponding
-window of time. Each colored line segment are centered on the locations
-determined by the time points when the data bit rate values were calculated
-by the OpenMDAO model.
-
-Figure \ref{pt3_g_earth} communications bit rate along the trajectories of the
-CADRE satellite during the $4^{\textrm{th}}$ design point. This can be compared
-directly with Figure \ref{pt3_data_results}, where one large spike in communications
-bit rate was preceded and then succeeded by two short time periods of lesser
-data rates. Plotted geographically, this is seen to be due to the procession of
-the satellites orbit, where the period of maximal data rate corresponds to a
-pass of the satellite directly over the ground station location. The proceeding and
-succeeding data rate spikes correspond to passes over the near Atlantic and
-Rocky Mountain regions, respectively.
+  \begin{figure}
+  \centering
+  \includegraphics[width=0.99\textwidth]{images/opt.png}
+  \caption[width=0.22\textwidth]{Convergence of the CADRE problem.}
+  \label{convergence}
+  \end{figure}
 
 
-Figure \ref{allpt_flatmap} similarly shows trajectory and bit rate data plotted
-from all six design points, centered on the United States. The orbital passes
-that are close enough to the ground station for communications can all be seen.
-Figure \ref{allpt_g_earth} zooms this view out to show coverage of the trajectories
-of all design points across the Earth.
+  Figure \ref{convergence} illustrates the convergence of the CADRE problem over the course of
+  these iterations. The first row plots the
+  value of the objective function, the total data downloaded over each design point. The objective
+  function oscillated greatly over the course of the first half of the computed iterations, but
+  stabilized by the 80th iteration near the value previously determined \cite{CADRE2012}
+  to be the optimal design.
+
+  The second row plots the maximum value of each constraint across all design points at
+  each iteration. As all of the problem constraint are non-positive for a feasible design,
+  this can be taken as a cursory measure of overall problem feasibility.
+  The third row plots the maximum value of each constraint across each of the design points,
+  but separated according to specific constraint type. These two plots both indicate that the
+  oscillatory behavior of the objective function coincided with a steady decrease in design
+  infeasibility. Once a feasible state was reached (near the 50th iteration), the optimizer
+  began refining the design towards a more favorable value of the objective function.
+
+  \begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{images/pt_3_data.png}
+  \caption[width=0.4\textwidth]{Plots of the bit rate, communications systems power, craft roll angle,
+  and battery charge level over the half-day time period covered by the $4^{\textrm{th}}$ design point.}
+  \label{pt3_data_results}
+  \end{figure}
+
+  Figure \ref{pt3_data_results} shows plots of selected variables for the $4^{\textrm{th}}$ design point,
+  to illustrate the fidelity of the recovered solution. These variables are the communications 
+  bit rate ($D_r$), communications systems power level ($P_{comm}$), craft roll angle ($\gamma$),
+  and battery charge level ($SOC$). Prior to the optimization, these variables
+  were each instantiated to uniform values
+  (across all time points) of 0, 0, $\frac{\pi}{4}$, and 0 respectively. The optimizer, operating on
+  OpenMDAO's graph formulation of the problem succeeded at converging each of these variables to the values
+  shown, for each time point. Line of sight is seen to have been achieved in three short ranges of time near the
+  beginning of the modeled half-day design point. Interestingly, though the data rate achieved in the second
+  time period with affirmative line of sight is significantly higher than the other two periods, the optimizer
+  converged to a solution that provided power to the communications system near uniformly for each of these
+  three time periods.
+
+  Figure \ref{pt3_data_results} shows that the craft roll angle, $\gamma$, roughly approximates a sine function
+  with a wavelength of 90 minutes (the approximate orbital period of the satellite),
+  with short term perturbations during the time
+  periods where line of sight is gained with the ground station. That is, the optimizer successfully
+  converged to a solution with the satellite continuously turned to maximize exposure to the sun,
+  except when turning to point its antenna towards the ground station during times when
+  communication is possible. This dynamic is also reflected in the battery state of charge ($SOC$)
+  data plotting in the bottom row, with the battery losing charge quickly during
+  communication with the ground station, but recharging while tracking with the sun.
+
+  Further post processing of the data included automatic geographical rendering of the trajectories of
+  the CADRE satellite for each of the 6 design points, using the Google
+  Maps\footnote{http://developers.google.com/maps/} and Google
+  Earth\footnote{http://developers.google.com/earth/} APIs. The trajectories are
+  represented as polygonal chain ("polyline") elements, colored according to the
+  satellites communication bit rate with the ground station during the corresponding
+  window of time. Each colored line segment are centered on the locations
+  determined by the time points when the data bit rate values were calculated
+  by the OpenMDAO model.
+
+  Figure \ref{pt3_g_earth} communications bit rate along the trajectories of the
+  CADRE satellite during the $4^{\textrm{th}}$ design point. This can be compared
+  directly with Figure \ref{pt3_data_results}, where one large spike in communications
+  bit rate was preceded and then succeeded by two short time periods of lesser
+  data rates. Plotted geographically, this is seen to be due to the procession of
+  the satellites orbit, where the period of maximal data rate corresponds to a
+  pass of the satellite directly over the ground station location. The proceeding and
+  succeeding data rate spikes correspond to passes over the near Atlantic and
+  Rocky Mountain regions, respectively.
 
 
-\begin{figure}
-\centering
-\includegraphics[width=0.8\textwidth]{images/pt3_gearth3.png}
-\caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
-for the $4^{\textrm{th}}$ design point onto the surface of the Earth, illustrating the
-communication data rates near the ground station.}
-\label{pt3_g_earth}
-\end{figure}
+  Figure \ref{allpt_flatmap} similarly shows trajectory and bit rate data plotted
+  from all six design points, centered on the United States. The orbital passes
+  that are close enough to the ground station for communications can all be seen.
+  Figure \ref{allpt_g_earth} zooms this view out to show coverage of the trajectories
+  of all design points across the Earth.
 
 
-\begin{figure}
-\centering
-\includegraphics[width=0.8\textwidth]{images/allpts_map_data.png}
-\caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
-for all 6 design points onto the surface of the Earth, illustrating the
-communication data rates near the ground station.}
-\label{allpt_flatmap}
-\end{figure}
+  \begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{images/pt3_gearth3.png}
+  \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
+  for the $4^{\textrm{th}}$ design point onto the surface of the Earth, illustrating the
+  communication data rates near the ground station.}
+  \label{pt3_g_earth}
+  \end{figure}
 
 
-\begin{figure}
-\centering
-\includegraphics[width=0.8\textwidth]{images/allpts_gearth2.png}
-\caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
-for all 6 design points onto the surface of the Earth.}
-\label{allpt_g_earth}
-\end{figure}
+  \begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{images/allpts_map_data.png}
+  \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
+  for all 6 design points onto the surface of the Earth, illustrating the
+  communication data rates near the ground station.}
+  \label{allpt_flatmap}
+  \end{figure}
+
+
+  \begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{images/allpts_gearth2.png}
+  \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
+  for all 6 design points onto the surface of the Earth.}
+  \label{allpt_g_earth}
+  \end{figure}
 
 
   \section{Aero-Structural Problem Formulation}
