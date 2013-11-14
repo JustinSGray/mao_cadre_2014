@@ -86,21 +86,22 @@
     analytic derivatives for at the system level, even if each discipline could provide its own partial derivatives. So many
     problems are solved using a finite difference approach, which restricts the size of the design space.
 
-    If you placed complexity on the Y-axis and Fidelity on the X-axis, then the problem spectrum resemble the notional
-    cartoon in Figure \ref{fig:complexity_cartoon}. In this diagram, there is a gap between the lower and higher fidelity
-    type problems is indicative of the bifurcation in methods used to solve each type of problem currently. This gap begs the
-    question, ``How should you appraoch a problem of medium complexity and medium fidelity?'' We propose that the answer to this
-    dilemma is to develop a more general manner of implementing MDAO problems that can be applied to any problem across the entire
-    space of complexity and fidelity.
+    If you placed complexity of the problem formulation on the Y-axis and computational complexity on the X-axis, then 
+    the complexity spectrum resembles the cartoon in Figure \ref{fig:complexity_cartoon}. 
+    In this diagram, the gap along the 45 degree line between the axes is indicative of the bifurcation 
+    in methods used to solve each type of problem currently. This gap begs the
+    question, ``How should you appraoch a problem of medium complexity and medium fidelity?'' 
+    We propose that the answer to this dilemma is to develop a more general manner of 
+    implementing MDAO problems that can be applied to any problem across the entire complexity spectrum. 
 
     \begin{figure}[!hbt]\begin{center}
       \includegraphics[width=.5\textwidth]{images/complexity_cartoon}
-      \caption{ Notional spectrum of design problems currently being addressed. \label{fig:complexity_cartoon}}
+      \caption{ Notional spectrum of complexity in design problems currently being addressed. \label{fig:complexity_cartoon}}
     \end{center}\end{figure}
 
-    In this work we demonstrate how OpenMDAO, an open-source framework, such a general
-    solution to constructing and solving complex problems with large design spaces using the
-    same MDAO methods commonly applied to the the shape optimization and aero-structural optimization
+    In this work we demonstrate how OpenMDAO, an open-source framework, provides such a general
+    solution to constructing and solving problems from across the complexity spectrum with large design spaces 
+    using the same MDAO methods commonly applied to the the shape optimization and aero-structural optimization
     problems. OpenMDAO achieves this by providing three key features:
 
     \begin{enumerate}
@@ -109,24 +110,15 @@
       \item Efficient operation in a high performance computing environment with distributed data
     \end{enumerate}
 
-    \begin{comment}
-      \begin{enumerate}
-        \item Combining analytic derivatives with finite difference in a mixed derivatives environment
-        \item Efficient solving for the coupled derivatives at the system level
-        \item Assembly of the full gradient from the partial derivatives of each discipline
-        \item Flexbility via separation of problem formulation from solution strategy
-        \item Simple implementation for multi-point design problems
-      \end{enumerate}
-    \end{comment}
-
-    To demonstrate these capabilities, we present two different problems representing different levels of
-    complexity and fidelity, solved within the OpenMDAO framework. The fist problem is the design of a small
-    satellite platform for taking weather measurements in the thermosphere, called CADRE. The CADRE problem has a
-    complex problem formulation with XX disciplines and over 25000 design variables, but is lower fidelity and can
-    be run on a single processor. This problem demonstrates that OpenMDAO successfully bridges the gap shown
-    in Figure \ref{fig:complexity_cartoon}. The second problem is an aero-structural design of the Common Research
-    Model wing, using CFD and FEA. This problem shows that OpenMDAO can work with problems that demand higher fidelity
-    simulations with parallel communication and distributed data.
+    To demonstrate these capabilities, we present two different problem solved with 
+    the OpenMDAO framework. The fist problem is the design of a small satellite 
+    platform for taking weather measurements in the thermosphere, called CADRE. The CADRE problem has a
+    medium problem complexity with about 20 disciplines and also medium computational complexity. 
+    This problem demonstrates that OpenMDAO can efficiently solve problems with massive design spaced and 
+    medium complexity. The second problem is an aero-structural design of 
+    the Common Research Model wing, using CFD and FEA. This problem has very high computational 
+    complexity and shows that OpenMDAO can be used effectively on problems that use higher fidelity 
+    simulations, parallel execution, and distributed data. 
 
   \section{Dependency Graph}
 
@@ -145,7 +137,6 @@
     then discuss in detail how graph traversal algorithms are used to provide features. OpenMDAO relies
     on the NetworkX \cite{hagberg-2008-exploring} python package for implementation of each of
     the algorithms.
-
 
     \subsection{Graph Structure}
     The graph utilizes the structure proposed by
@@ -188,7 +179,10 @@
     used somewhere it is not correct to indicate a dependence on the entire chunk of data. So in this case, a
     single new node representing the sub-variable is created with its own dependence on the parent variable.
     This book keeping becomes particularly important for when the graph is used to calculate derivatives or
-    manage the partitioning of distributed data.
+    manage the partitioning of distributed data. Both problems contain large design spaces. The CADRE problem 
+    involves about 25000 design variables, and the aero-structural problem involves about 200. 
+    Together these problems demonstrate how OpenMDAO can simplify the process of implementing difficult 
+    design problems with large design spaces and varying kinds of complexity. 
 
 
     \subsection{Determining Execution Order}
@@ -232,7 +226,7 @@
     of variables and components depending on the structure of the graph. Hence, each linear solve step 
     is kept to its minimum possible size to keep. 
 
-    \section(Direct vs Adjoint Methods)
+    \section{Direct vs Adjoint Methods}
 
     OpenMDAO supports calculating derivatives in two ways: direct and adjoint. The direct method performs
     one linear solve for each design variable. The adjoint method performs one linear solve per each objective 
@@ -275,6 +269,8 @@
     To illustrate this: (figure)
     
   \section{CADRE Problem Formulation}
+
+  The CADRE problem represents a class of problems with medium complexity and medium fidelity. 
 
     \begin{align}
         \\\txt{max.} &\ \ \sum_{i=1}^6 D_i \notag
