@@ -245,8 +245,8 @@
 
     \begin{itemize}
         \item provideJ(ins, outs, Jacobian)
-        \item apply_deriv(input_vector, result_vector)
-        \item apply_derivT(input_vector, result_vector)
+        \item apply\_deriv(input\_vector, result\_vector)
+        \item apply\_derivT(input\_vector, result\_vector)
     \end{itemize}
     
     The provideJ method is the simplest method to implement, and also the most flexible. The user simply gives the framework the 
@@ -257,7 +257,7 @@
     (on the order of 10's), then this cost is not likely to be significant. However, as the scale of the components grows, 
     the other two functions will offer better efficiency. 
 
-    The two methods apply_deriv and apply_derivT implement Jacobian linear operators at 
+    The two methods apply\_deriv and apply\_derivT implement Jacobian linear operators at 
     the component level for the direct and adjoint methods respectively. So the user must provide both if they 
     want the component to be able to operate in both forward and adjoint modes. If the user prefers one method over 
     the other, they can choose to only implement one or the other. When both methods are present OpenMDAO will 
