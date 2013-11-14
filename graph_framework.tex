@@ -112,7 +112,7 @@
 
     To demonstrate these capabilities, we present two different problem solved with
     the OpenMDAO framework. The fist problem is the design of a small satellite
-    platform for taking weather measurements in the thermosphere, called CADRE. The CADRE problem has a
+    platform for taking weather measurements in the thermosphere, called CADRE. The satellite problem has a
     medium problem complexity with about 20 disciplines and also medium computational complexity.
     This problem demonstrates that OpenMDAO can efficiently solve problems with massive design spaced and
     medium complexity. The second problem is an aero-structural design of
@@ -181,7 +181,7 @@
     used somewhere it is not correct to indicate a dependence on the entire chunk of data. So in this case, a
     single new node representing the sub-variable is created with its own dependence on the parent variable.
     This book keeping becomes particularly important for when the graph is used to calculate derivatives or
-    manage the partitioning of distributed data. Both problems contain large design spaces. The CADRE problem
+    manage the partitioning of distributed data. Both problems contain large design spaces. The satellite problem
     involves about 25000 design variables, and the aero-structural problem involves about 200.
     Together these problems demonstrate how OpenMDAO can simplify the process of implementing difficult
     design problems with large design spaces and varying kinds of complexity.
@@ -279,14 +279,14 @@
     produce the derivatives that are used in the linear system of the full model. The dependency graph is also used
     to find groups of connected components with no derivative defined so that they can be finite differenced as a single entity.
 
-  \section{CADRE Problem Formulation}
+  \section{Satellite Problem Formulation}
 
   CADRE (Cubesat investigating Atmospheric Density Response to Extreme driving)
   is a mission funded by the National Science Foundation to study the
   response of the thermosphere to auroral phenomena\cite{cutler2011cubesat}.
 
-  The CADRE problem represents a class of problems with medium complexity and medium fidelity.
-  A graph-free gradient based approach at multidisciplinary optimization of the CADRE
+  The satellite design problem represents a class of problems with medium complexity and medium fidelity.
+  A graph-free gradient based approach at multidisciplinary optimization of the satellite
   problem has previously been used successfully\cite{CADRE2012}. We have implemented
   the same problem formulation using OpenMDAO.
 
@@ -309,12 +309,12 @@
 
     \begin{figure}[!htb]\begin{center}
       \includegraphics[width=1.1\textwidth]{images/CADRE.pdf}
-      \caption{ Dependency graph for the CADRE problem. \label{fig:cadre_graph}}
+      \caption{ Dependency graph for the satellite problem. \label{fig:cadre_graph}}
     \end{center}\end{figure}
 
-  \section{CADRE Results}
+  \section{Satellite Results}
 
-    The OpenMDAO implementation of the CADRE problem was executed on a
+    The OpenMDAO implementation of the satellite problem was executed on a
     Macbook Pro (2.3 Ghz Core i7 processor, 4GB 1600 Mhz DDR3 memory, running OSX 10.8.5)
     over the course of two days, to a termination tolerance of $10^{-5}$. This tolerance
     was achieved within approximately 106 iterations, using the SNOPT\cite{gill2005snopt}
@@ -322,14 +322,14 @@
 
     \begin{figure}
     \centering
-    \includegraphics[width=0.99\textwidth]{images/opt.png}
-    \caption[width=0.22\textwidth]{Convergence of the CADRE problem.
+    \includegraphics[width=0.99\textwidth]{images/opt}
+    \caption[width=0.22\textwidth]{Convergence of the satellite problem.
     \label{convergence}
     }
     \end{figure}
 
 
-    Figure \ref{convergence} illustrates the convergence of the CADRE problem over the course of
+    Figure \ref{convergence} illustrates the convergence of the satellite problem over the course of
     these iterations. The first row plots the
     value of the objective function, the total data downloaded over each design point. The objective
     function oscillated greatly over the course of the first half of the computed iterations, but
@@ -347,7 +347,7 @@
 
     \begin{figure}
     \centering
-    \includegraphics[width=0.8\textwidth]{images/pt_3_data.png}
+    \includegraphics[width=0.8\textwidth]{images/pt_3_data}
     \caption[width=0.4\textwidth]{Plots of the bit rate, communications systems power, craft roll angle,
     and battery charge level over the half-day time period covered by the $4^{\textrm{th}}$ design point.
     \label{pt3_data_results}
@@ -379,7 +379,7 @@
     communication with the ground station, but recharging while tracking with the sun.
 
     Further post processing of the data included automatic geographical rendering of the trajectories of
-    the CADRE satellite for each of the 6 design points, using the Google
+    the  satellite for each of the 6 design points, using the Google
     Maps\footnote{http://developers.google.com/maps/} and Google
     Earth\footnote{http://developers.google.com/earth/} APIs. The trajectories are
     represented as polygonal chain ("polyline") elements, colored according to the
@@ -389,7 +389,7 @@
     by the OpenMDAO model.
 
     Figure \ref{pt3_g_earth} shows the communications bit rate along the trajectories of the
-    CADRE satellite during the $4^{\textrm{th}}$ design point. This can be compared
+    satellite during the $4^{\textrm{th}}$ design point. This can be compared
     directly with Figure \ref{pt3_data_results}, where one large spike in communications
     bit rate was preceded and then succeeded by two short time periods of lesser
     data rates. Plotted geographically, this is seen to be due to the procession of
@@ -408,8 +408,8 @@
 
     \begin{figure}
     \centering
-    \includegraphics[width=0.8\textwidth]{images/pt3_gearth3.png}
-    \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
+    \includegraphics[width=0.8\textwidth]{images/pt3_gearth3}
+    \caption[width=0.4\textwidth]{Plot of the trajectories of the satellite
     for the $4^{\textrm{th}}$ design point onto the surface of the Earth, illustrating the
     communication data rates near the ground station.
     \label{pt3_g_earth}
@@ -420,8 +420,8 @@
 
     \begin{figure}
     \centering
-    \includegraphics[width=0.8\textwidth]{images/allpts_map_data.png}
-    \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
+    \includegraphics[width=0.8\textwidth]{images/allpts_map_data}
+    \caption[width=0.4\textwidth]{Plot of the trajectories of the satellite
     for all 6 design points onto the surface of the Earth, illustrating the
     communication data rates near the ground station.
     \label{allpt_flatmap}
@@ -432,8 +432,8 @@
 
     \begin{figure}
     \centering
-    \includegraphics[width=0.8\textwidth]{images/allpts_gearth2.png}
-    \caption[width=0.4\textwidth]{Plot of the trajectories of the CADRE satellite
+    \includegraphics[width=0.8\textwidth]{images/allpts_gearth2}
+    \caption[width=0.4\textwidth]{Plot of the trajectories of the satellite
     for all 6 design points onto the surface of the Earth.
     \label{allpt_g_earth}
     }
@@ -453,16 +453,18 @@
 
   By taking advantage of the capabilities of OpenMDAO to manage the complexity of data exchange and gradient construction 
   for a complex problem formulation, it is possible to break the aero-structural problem up into more granular components 
-  and construct a more flexible implementation. For this work the problem is broken down into 15 disciplines, 
-  shown in Figure \ref{fig:aero-struct-xdsm}. 
+  and construct a more flexible implementation. For this work the problem is broken down into 15 disciplines such as 
+  geometry, CFD, FEA, load transfer, displacement transfer, materials, and mesh-warping.
 
-  \begin{figure}
-    \centering
-    \includegraphics[width=0.8\textwidth]{images/allpts_map_data.png}
-    \caption[width=0.4\textwidth]{Aero-structural problem formulation given in XDSM form
-    \label{fig:aero-struct-xdsm}
-    }
-  \end{figure}
+  \begin{comment}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/aero-struct-xdsm}
+        \caption[width=0.4\textwidth]{Aero-structural problem formulation given in XDSM form
+        \label{fig:aero-struct-xdsm}
+        }
+      \end{figure}
+  \end{comment}
 
   Although this problem formulation is more complex, breaking the problem up in this manner offers some significant 
   practical advantages for implementation. Each discipline is smaller and more self-contained, which makes it simpler 
