@@ -72,7 +72,7 @@
 
     Gradient based optimization with analytic gradients is an effective tool for solving problems 
     with large design spaces. It has been applied widely for aerodynamic shape optimization \cite{Liou2010,palacios2012adjoint}
-    and structural optimization [Citations Needed]. 
+    and structural optimization\cite{venkataraman2004structural, }. 
     In order to apply these methods to multidisciplinary problems, system level derivatives must be 
     constructed by combining the partial derivatives from each discipline using the Global Sensitivity 
     Equations\cite{Sobieski1990}. This technique has been applied commonly to coupled 
@@ -143,7 +143,7 @@
     \end{center}\end{figure}
 
 
-    \subsction{Efficient Handling of Array Variables}
+    \subsection{Efficient Handling of Array Variables}
         This graph contains all the necessary information to take full advantage of problem sparsity, 
         but suffers from one potential weakness. A naive implementation of Pate et. al.`s graph would have a 
         single node for each scalar value involved. For a problem with millions of state variables, like 
@@ -288,6 +288,14 @@
           \includegraphics[width=1.1\textwidth]{images/CADRE.pdf}
           \caption{ Dependency graph for the satellite problem. \label{fig:cadre_graph}}
         \end{center}\end{figure}
+
+        [Insert XDSM HERE]
+
+        \begin{itemize}
+            \item this problem uses adjoint
+            \item all analytic gradients
+        \end{itemize}
+
 
     \subsection{Results}
 
