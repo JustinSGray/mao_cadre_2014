@@ -70,65 +70,65 @@
 
   \section{Introduction (Justin)}
 
-    Gradient based optimization with analytic gradients is an effective tool for solving problems 
+    Gradient based optimization with analytic gradients is an effective tool for solving problems
     with large design spaces. It has been applied widely for aerodynamic shape optimization \cite{Liou2010,palacios2012adjoint}
-    and structural optimization\cite{venkataraman2004structural, }. 
-    In order to apply these methods to multidisciplinary problems, system level derivatives must be 
-    constructed by combining the partial derivatives from each discipline using the Global Sensitivity 
-    Equations\cite{Sobieski1990}. This technique has been applied commonly to coupled 
-    aero-structural design optimization of aircraft wings\cite{Kenway2012c, Haghighat2012} and is applicable to 
-    other coupled design problems such as aero-accoustic design\cite{economon2012coupled}.Extending these 
-    gradient based techniques to more complex problem formulations has proved difficult. When 
-    design problems grow to include 10's of disciplines, it becomes increasingly difficult to construct the 
-    necessary derivatives. Even assuming all of the disciplines could provide analytic partial derivatives, 
-    the construction of the system level derivatives is heavily dependent on the structure of the data passing 
-    between disciplines. Manual implementations for these problems are time consuming and discourage modifications 
-    to the problem formulation in the future. Moore developed a method for automatically assembling the system 
-    level derivatives based on the data-dependency graph of a given problem formulation\cite{openmdao_derivatives}. 
-    In addition to allowing greater flexibility in the problem formulation, a key feature of this graph-based approach, was the efficient 
-    handling of sparse problem formulations. By traversing the graph from design variables to quantities of interest, 
-    it was possible to consider only the subset of variables that were relevant to a specific system level gradient thus 
-    making gradient computations more efficient. 
+    and structural optimization\cite{venkataraman2004structural, }.
+    In order to apply these methods to multidisciplinary problems, system level derivatives must be
+    constructed by combining the partial derivatives from each discipline using the Global Sensitivity
+    Equations\cite{Sobieski1990}. This technique has been applied commonly to coupled
+    aero-structural design optimization of aircraft wings\cite{Kenway2012c, Haghighat2012} and is applicable to
+    other coupled design problems such as aero-accoustic design\cite{economon2012coupled}.Extending these
+    gradient based techniques to more complex problem formulations has proved difficult. When
+    design problems grow to include 10's of disciplines, it becomes increasingly difficult to construct the
+    necessary derivatives. Even assuming all of the disciplines could provide analytic partial derivatives,
+    the construction of the system level derivatives is heavily dependent on the structure of the data passing
+    between disciplines. Manual implementations for these problems are time consuming and discourage modifications
+    to the problem formulation in the future. Moore developed a method for automatically assembling the system
+    level derivatives based on the data-dependency graph of a given problem formulation\cite{openmdao_derivatives}.
+    In addition to allowing greater flexibility in the problem formulation, a key feature of this graph-based approach, was the efficient
+    handling of sparse problem formulations. By traversing the graph from design variables to quantities of interest,
+    it was possible to consider only the subset of variables that were relevant to a specific system level gradient thus
+    making gradient computations more efficient.
 
-    Although Moore's work demonstrated that a framework could compute system level derivatives for arbitrary 
-    problem setups, it required components to provide a full Jacobian matrix, which it assembled into 
-    complete system level Jacobian matrix.  This made it unsuitable for usage with 
-    high-fidelity tools, since they often times had far too many variables to allow assembling a full Jacobian. 
-    Martins and Hwang developed an alternative, graph-free, method for computing automatic system 
-    level sensitivities which used a global design variable vector\cite{Martins2012}. 
-    In a later work they added a matrix-free solver algorithm to their method that solved issue with full Jacobians from 
+    Although Moore's work demonstrated that a framework could compute system level derivatives for arbitrary
+    problem setups, it required components to provide a full Jacobian matrix, which it assembled into
+    complete system level Jacobian matrix.  This made it unsuitable for usage with
+    high-fidelity tools, since they often times had far too many variables to allow assembling a full Jacobian.
+    Martins and Hwang developed an alternative, graph-free, method for computing automatic system
+    level sensitivities which used a global design variable vector\cite{Martins2012}.
+    In a later work they added a matrix-free solver algorithm to their method that solved issue with full Jacobians from
     Moore's implementation. They demonstrated the effectiveness of their method on a design optimization of a small satellite
     with over 25,000 design variables and over 1 million state variables\cite{CADRE2012}. Despite its success,
-    the global-vector based approach required all the variables from the system model be 
-    included when solving for system level derivatives. This prevented Martins and Hwang's method 
-    from taking advantage of sparsity in the problem formulation and resulted in a less efficient gradient solving step. 
-    As a result, over 90\% of the compute during convergence time was spent solving a linear system for the system 
-    level derivatives. 
+    the global-vector based approach required all the variables from the system model be
+    included when solving for system level derivatives. This prevented Martins and Hwang's method
+    from taking advantage of sparsity in the problem formulation and resulted in a less efficient gradient solving step.
+    As a result, over 90\% of the compute during convergence time was spent solving a linear system for the system
+    level derivatives.
 
-    This work combined the graph-based approach taken by Moore with the matrix-free solution algorithm 
-    developed by Martins and Hwang to efficiently compute derivatives for sparse, large-scale engineering 
-    design problems. The original small satellite design problem was re-run using the new method and 
-    a dramatic increase in efficiency was demonstrated. A second design optimization on a wind turbine was 
+    This work combined the graph-based approach taken by Moore with the matrix-free solution algorithm
+    developed by Martins and Hwang to efficiently compute derivatives for sparse, large-scale engineering
+    design problems. The original small satellite design problem was re-run using the new method and
+    a dramatic increase in efficiency was demonstrated. A second design optimization on a wind turbine was
     also performed. This problem had a more complex structure with stronger multidisciplinary couplings as well as a
-    mixture of analytic and finite difference gradients. 
+    mixture of analytic and finite difference gradients.
 
   \section{Unfied Derivatives Computations (John)}
-    Short summary of the unified derivatives method and it's implications for forward or adjoint derivatives. 
+    Short summary of the unified derivatives method and it's implications for forward or adjoint derivatives.
 
 
   \section{Dependency Graph (Ken/Justin)}
 
-    In Moore's original work on computing derivatives from a dependency graph, he employed 
-    a discipline based dependency graph, with a node for each discipline and edges describing 
-    dependency between the nodes. He employed path finding algorithms, from the NetworkX library\cite{hagberg-2008-exploring}, 
-    to compute the relevant set of disciplines for a given derivative. Although this takes advantage of sparsity at 
-    one level, by excluding any disciplines that don't directly contribute, it can't handle a second level of sparsity 
-    within the relevant disciplines. Even if a given discipline is relevant, some of its variables may still not be 
-    because they don't directly affect the quantities of interest. Pate et. al. proposed an alternative dependency graph 
+    In Moore's original work on computing derivatives from a dependency graph, he employed
+    a discipline based dependency graph, with a node for each discipline and edges describing
+    dependency between the nodes. He employed path finding algorithms, from the NetworkX library\cite{hagberg-2008-exploring},
+    to compute the relevant set of disciplines for a given derivative. Although this takes advantage of sparsity at
+    one level, by excluding any disciplines that don't directly contribute, it can't handle a second level of sparsity
+    within the relevant disciplines. Even if a given discipline is relevant, some of its variables may still not be
+    because they don't directly affect the quantities of interest. Pate et. al. proposed an alternative dependency graph
     structure that addressed this problem\cite{graph_problem2013}. Each discipline and all its inputs and outputs are
     represented by nodes with directed edges between them describing their dependencies on each other.
     Figure \ref{fig:sellar_graph} shows a sample graph for the Sellar Problem \cite{AIAA:sellar}
-    given in eqn. \ref{eqn:sellar_formulation}. 
+    given in eqn. \ref{eqn:sellar_formulation}.
 
     \begin{align}
         \txt{given} & \ \ y_1 = D_1(x_1,y_2,z_1,z_2) \notag
@@ -147,12 +147,12 @@
 
 
     \subsection{Efficient Handling of Array Variables}
-        This graph contains all the necessary information to take full advantage of problem sparsity, 
-        but suffers from one potential weakness. A naive implementation of Pate et. al.`s graph would have a 
-        single node for each scalar value involved. For a problem with millions of state variables, like 
-        aerodynamic shape optimization, the graph would get very large and would be inefficient to operate on. 
+        This graph contains all the necessary information to take full advantage of problem sparsity,
+        but suffers from one potential weakness. A naive implementation of Pate et. al.`s graph would have a
+        single node for each scalar value involved. For a problem with millions of state variables, like
+        aerodynamic shape optimization, the graph would get very large and would be inefficient to operate on.
         To address this issue related variables, such as arrays, can be aggregated into a single node to
-        represent the overall variable. If any specific sub-variable is referenced 
+        represent the overall variable. If any specific sub-variable is referenced
         (e.g., some slice of an array). Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. Here,
         both outputs A.x and A.y are array variables. The full array A.x is connected to B.x while a single element
         of A.y is connected to the scalar B.z.
@@ -162,26 +162,26 @@
           \caption{ Example graph with child nodes for sub-variables \label{fig:subvars}}
         \end{center}\end{figure}
 
-        By using the sub-variable nodes, the computational advantages of problem sparsity are retained. For example, 
+        By using the sub-variable nodes, the computational advantages of problem sparsity are retained. For example,
         consider $\frac{\partial B.z}{\partial A.y}$ from Fig. \ref{fig:subvars}. Given the graph, we know that
-        this derivative will be sparse, with only $A.y[2]$ having non-zero values. When solving for derivatives, 
-        without the sub-var node, you would need to consider all the elements of the $A.y$ array. With them, only 
-        the single relevant value from the array needs to be considered. 
+        this derivative will be sparse, with only $A.y[2]$ having non-zero values. When solving for derivatives,
+        without the sub-var node, you would need to consider all the elements of the $A.y$ array. With them, only
+        the single relevant value from the array needs to be considered.
 
-        \begin{equation} 
-            \frac{\partial B.z}{\partial A.y} = 
-            \begin{bmatrix} 
+        \begin{equation}
+            \frac{\partial B.z}{\partial A.y} =
+            \begin{bmatrix}
                 0 \\
-                0 \\ 
+                0 \\
                 \frac{\partial B.z}{\partial A.y[2]} \\
                 \vdots \\
                 0 \\
             \end{bmatrix}
-        \end{equation} 
+        \end{equation}
 
     \subsection{Graph Traversal and Determining Relevance}
 
-    
+
         The requested derivatives are calculated from the solution of the set of equations that is assembled
         from the output-input derivatives of all the components. The number of equations
         is determined by the number of variables represented the graph, which means that the linear
@@ -208,7 +208,7 @@
           \caption{ The reduced graph for the derivatives calculation includes Comps 1, 3, and 5 with their interconnecting variables. \label{fig:graph2}}
         \end{center}\end{figure}
 
-    
+
     \subsection{Graph Cycles and Coupled Derivatives}
 
         Pate et. al indicate that within a dependency graph, the presence of cycles indicates coupling between
@@ -222,7 +222,7 @@
         need to be converged with a numerical solver such as Gauss-Seidel or Newton based.
         In addition these cycles need to be accounted for when solving for the gradients
 
-   
+
     \section{API for Specifying Discipline Derivatives (Tristan)}
 
         OpenMDAO supports calculating derivatives in two ways: direct and adjoint. The direct method performs
@@ -270,6 +270,35 @@
       problem has previously been used successfully\cite{CADRE2012}. We have implemented
       the same problem formulation using OpenMDAO.
 
+The CADRE problem models the interaction of several disciplines (attitude control, communications, power and energy
+storage system, thermal dynamics, craft orbital dynamics, and sun-earth position) over the course of a one year mission.
+Specifically, the system is modeled over the course of six separate half-days of operation, computed at conditions
+1, 3, 5, 7, 9, and 11 months after launch. This way, design parameters can be optimized to balance performance under
+diverse conditions (such as relative location of the sun, etc.) over the course of the mission. The objective of the
+optimization is to maximize the total amount of data transmitted to the ground station (Ann Arbor, MI) over these six
+design points. Figure \ref{fig:cadre_graph} shows the interaction among the separate disciplines of the CADRE optimization problem. Very thorough descriptions of the engineering modeled by each discipline are given by Hwang et. al. in their original paper on the optimization of CADRE\cite{CADRE2012}.
+
+        \begin{figure}[!htb]\begin{center}
+          \includegraphics[width=1.1\textwidth]{images/CADRE.pdf}
+          \caption{ Dependency graph for the satellite problem. \label{fig:cadre_graph}}
+        \end{center}\end{figure}
+
+Seven types of design parameters are involved. Four of these design parameters vary over time: current of each solar
+cell $Isetpt$, the craft roll angle $\gamma$, communications system power $P_{comm}$, and battery initial state of
+charge $iSOC$.
+
+The remaining three design variables are static: the choice of whether solar panel or radiator is installed in a
+particular location on the craft $Cellinstd$, the angle of the four fins $finAngle$, and the angle of the
+communications antenna $antAngle$.
+
+The CADRE model is parameterized by the number of discrete time steps desired $n$ as well as a number of B-spline
+control points $m$ used to interpolate the design variables to arrays of size $n$ (in the array dimension
+representing time). So $m$ has direct influence on the number of the time-varying design variables in the problem,
+while $n$ controls the fidelity of the results.
+
+Five constraints for the problem relate to the battery charge rate, battery discharge rate, minimum
+battery capacity, maximum battery capacity, and a battery state-of-charge periodicity constraint. Equation \ref{eqn:sellar_formulation} summarizes the fundamental problem formulation for CADRE.
+
         \begin{align}
             \\\txt{max.} &\ \ \sum_{i=1}^6 D_i \notag
             \\\txt{w.r.t.} & \ \ 0 \le I_{setpt} \le 4 \notag
@@ -287,10 +316,10 @@
         \end{align}
 
 
-        \begin{figure}[!htb]\begin{center}
-          \includegraphics[width=1.1\textwidth]{images/CADRE.pdf}
-          \caption{ Dependency graph for the satellite problem. \label{fig:cadre_graph}}
-        \end{center}\end{figure}
+The values for $n$ and $m$ were set to 1500 and 300 respectively, which gives a full design problem with over
+25,000 design variables. The graph structure of OpenMDAO's derivatives system together with high-performance
+optimizers enabled a problem of this size to be solved efficiently.
+
 
         [Insert XDSM HERE]
 
@@ -404,7 +433,7 @@
         communication data rates near the ground station.
         \label{pt3_g_earth}
         }
-        
+
         \end{figure}
 
 
@@ -416,7 +445,7 @@
         communication data rates near the ground station.
         \label{allpt_flatmap}
         }
-        
+
         \end{figure}
 
 
@@ -427,20 +456,20 @@
         for all 6 design points onto the surface of the Earth.
         \label{allpt_g_earth}
         }
-        
+
         \end{figure}
 
         \subsection{Performance Results}
-            Compare size of linear system with and without sparsity. Relative speeds. 
+            Compare size of linear system with and without sparsity. Relative speeds.
 
 
   \section{Wind Turbine Design Problem (Justin/Andrew)}
     \subsection{Problem Formulation}
         \begin{itemize}
-            \item Design variables, objectives, constraints. 
+            \item Design variables, objectives, constraints.
             \item this problem uses forward
             \item mixed analytic and FD gradients
-            \item non-relevant, but non-differentiable variables 
+            \item non-relevant, but non-differentiable variables
         \end{itemize}
 
     \subsection{Results}
@@ -448,17 +477,16 @@
             \item FD vs analytic results
             \item speed issues without directional derivatives
         \end{itemize}
-     
+
 
   \section{Conclusion (Justin/Tristan)}
 
       This work demonstrates how a graph-based approach to problem formulation compliments and enhances the benefits of gradient based
-      optimization. The graph provides a proper structure to handle the necessary bookkeeping to automatically implement complex 
-      problem formulations while making use of analytic gradients. By implementing this graph based approach in OpenMDAO, the framework 
-      can alleviate the responsibilities for such bookkeeping from the user entirely which dramatically simplifies implementation. 
+      optimization. The graph provides a proper structure to handle the necessary bookkeeping to automatically implement complex
+      problem formulations while making use of analytic gradients. By implementing this graph based approach in OpenMDAO, the framework
+      can alleviate the responsibilities for such bookkeeping from the user entirely which dramatically simplifies implementation.
 
-      The two problems examined in this work demonstrate that a single framework can operate efficiently and effectively on a wide range 
-      of large-scale problems. 
+      The two problems examined in this work demonstrate that a single framework can operate efficiently and effectively on a wide range of large-scale problems.
 
   \bibliography{references}
 
