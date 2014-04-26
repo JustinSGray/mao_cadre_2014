@@ -145,6 +145,88 @@
       \caption{ Dependency graph for the Sellar problem. \label{fig:sellar_graph}}
     \end{center}\end{figure}
 
+    In the original graph syntax, a single node is given for every variable. This holds true for the graph
+    within OpenMDAO, with only one minor caveat. In the case of any hierarchical variables, such as arrays
+    or VariableTrees, one variable node is created to represent the overall variable with additional nodes
+    created if any specific sub-variable is referenced (e.g., some slice of an array or some child variable from a 
+    VariableTree). Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. Here,
+    both outputs A.x and A.y are array variables. The full array A.x is connected to B.x while a single element
+    of A.y is connected to the scalar B.z.
+
+     \begin{figure}[!htb]\begin{center}
+      \includegraphics[width=.5\textwidth]{images/Graph1}
+      \caption{ Example graph with child nodes for sub-variables \label{fig:subvars}}
+    \end{center}\end{figure}
+
+    By representing hierarchical data as a single node, we help keep the overall size of the graph manageable
+    when large chunks of data are being communicated. However, if some small sub-set of that data needs to be
+    used somewhere it is not correct to indicate a dependence on the entire chunk of data. So in this case, a
+    single new node representing the sub-variable is created with its own dependence on the parent variable.
+    This book keeping becomes particularly important for when the graph is used to calculate derivatives or
+    manage the partitioning of distributed data. Both problems contain large design spaces. The CADRE problem 
+    involves about 25000 design variables, and the aero-structural problem involves about 200. 
+    Together these problems demonstrate how OpenMDAO can simplify the process of implementing difficult 
+    design problems with large design spaces and varying kinds of complexity. 
+
+
+    \subsection{Determining Execution Order}
+
+    The OpenMDAO framework uses its dependency graph to determine component execution order by finding the 
+    shortest path from the design variables to the quantities of interest for any given model\cite{openmdao_derivatives}. 
+    This path contains the set of relevant components and variables that make up a sub-graph of the full
+    dependency graph. During execution, only the components in this graph will be executed and they will be executed 
+    in the order prescribed by following the graph path. 
+
+    \subsection{Cycle Detection and Usage}
+    Pate et. al indicate that within a dependency graph, the presence of cycles indicates coupling between
+    the components in the cycle \cite{graph_problem2013}. A cycle can consist of two or more components, and
+    one component may be part of more than one cycle.
+
+    In formal terms, cycles exist in a graph when a group of nodes are strongly connected. The NetworkX package
+    provides an implementation of Tarjans algorithm for finding sets of strongly connected
+    components\cite{tarjan1972depth,nuutila1994finding}. Once found, the presence of these cycles
+    have an impact on how any given model is solved. Firstly during normal execution, these cycles
+    need to be converged with a numerical solver such as Gauss-Seidel or Newton based. 
+    In addition these cycles need to be accounted for when solving for the gradients 
+
+    \subsection{Gradient Calculation}
+    
+    OpenMDAO can calculate a gradient between any set of input and output nodes in the
+    dependency graph by setting up the linear system devised by Martins and Hwang \cite{Martins2012} in their 
+    work developing a unified theory for derivatives computation. 
+    The requested derivatives are calculated from the solution of the set of equations that is assembled
+    from the output-input derivatives of all the components. The number of equations 
+    is determined by the number of variables represented the graph, which means that the linear 
+    system can get very large. To allow for such large systems the full model Jacobian is implemented as 
+    a linear operator, so that it never has to be stored entirely in memory. The
+    linear operator takes a vector as input, and returns the product of the Jacobian with that vector.
+    
+    In Martins and Hwang's original work, they considered all possible variables in their linear system. 
+    By using the dependency graph, OpenMDAO is able to achieve significant reductions computational cost of 
+    solving the linear system. Using the same path finding algorithm for determining execution order, 
+    OpenMDAO finds the reduced set of component nodes and variable nodes that are both downstream of the design parameters
+    and upstream of a specific quantity of interest. One such sub-graph is found for each linear solve necessary to
+    find all the derivatives of the system. It is possible that each sub-graph will contain different sets 
+    of variables and components depending on the structure of the graph. Hence, each linear solve step 
+    is kept to its minimum possible size to keep. 
+
+    For example, the model in Figure \ref{fig:graph2} contains 5 components that run during an analysis. If we
+    want to optimize this model with the given parameter and objective, only the highlighted component nodes
+    will be in the reduced dependency graph, and thus only the highlighted variables appear in the linear
+    system.
+    
+    \begin{figure}[!htb]\begin{center}
+      \includegraphics[width=.8\textwidth]{images/Graph2}
+      \caption{ The reduced graph for the derivatives calculation includes Comps 1, 3, and 5 with their interconnecting variables. \label{fig:graph2}}
+    \end{center}\end{figure}
+
+    \section{Direct vs Adjoint Methods}
+
+    OpenMDAO supports calculating derivatives in two ways: direct and adjoint. The direct method performs
+    one linear solve for each design variable. The adjoint method performs one linear solve per each objective 
+    and constraints. Hence, if you have more design variables than quantities of interest (as if often the case), 
+    the adjoint method will require far fewer solves of the linear system. If you have fewer design variables then 
+    objectives and constraints the forward mode is preferable. 
 
     \subsection{Efficient Handling of Array Variables}
         This graph contains all the necessary information to take full advantage of problem sparsity, 
