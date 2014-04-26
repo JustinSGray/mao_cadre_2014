@@ -1,6 +1,6 @@
 \documentclass[]{aiaa-tc} % insert '[draft]' option to show overfull boxes
 
- \title{Computing Automatic Analytic Gradients on Sparse Multidisciplinary Design Problems }
+ \title{Computing Automatic Analytic Gradients on Sparse Multidisciplinary Design Problems in OpenMDAO}
 
 \author{
   Tristan A. Hearn,%
@@ -72,7 +72,7 @@
 
     Gradient based optimization with analytic gradients is an effective tool for solving problems
     with large design spaces. It has been applied widely for aerodynamic shape optimization \cite{Liou2010,palacios2012adjoint}
-    and structural optimization\cite{venkataraman2004structural, }.
+    and structural optimization\cite{Kennedy:2013:TACS, Venkataraman:2004:SOC, Adelman:1986:structure-sensitivity}.
     In order to apply these methods to multidisciplinary problems, system level derivatives must be
     constructed by combining the partial derivatives from each discipline using the Global Sensitivity
     Equations\cite{Sobieski1990}. This technique has been applied commonly to coupled
@@ -120,8 +120,8 @@
 
     In Moore's original work on computing derivatives from a dependency graph, he employed
     a discipline based dependency graph, with a node for each discipline and edges describing
-    dependency between the nodes. He employed path finding algorithms, from the NetworkX library\cite{hagberg-2008-exploring},
-    to compute the relevant set of disciplines for a given derivative. Although this takes advantage of sparsity at
+    dependency between the nodes. A path finding algorithm, from the NetworkX library\cite{hagberg-2008-exploring},
+    computed the relevant set of disciplines for a given derivative. Although this took advantage of sparsity at
     one level, by excluding any disciplines that don't directly contribute, it can't handle a second level of sparsity
     within the relevant disciplines. Even if a given discipline is relevant, some of its variables may still not be
     because they don't directly affect the quantities of interest. Pate et. al. proposed an alternative dependency graph
@@ -145,154 +145,67 @@
       \caption{ Dependency graph for the Sellar problem. \label{fig:sellar_graph}}
     \end{center}\end{figure}
 
-    In the original graph syntax, a single node is given for every variable. This holds true for the graph
-    within OpenMDAO, with only one minor caveat. In the case of any hierarchical variables, such as arrays
-    or VariableTrees, one variable node is created to represent the overall variable with additional nodes
-    created if any specific sub-variable is referenced (e.g., some slice of an array or some child variable from a 
-    VariableTree). Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. Here,
-    both outputs A.x and A.y are array variables. The full array A.x is connected to B.x while a single element
-    of A.y is connected to the scalar B.z.
+    In the original graph syntax, a single node is given for every variable. This graph contains all the 
+    necessary information to take full advantage of problem sparsity, but suffers from one potential 
+    weakness. For a problem with millions of state variables, like aerodynamic shape optimization, 
+    the graph would get very large and would be inefficient to operate on. To address this issue 
+    related variables, such as arrays, can be aggregated into a single node to represent the 
+    overall variable. If any specific sub-variable is referenced (e.g., some slice of an array). 
+    Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. Here,
+    both outputs A.x and A.y are array variables. The full array A.x is connected to 
+    B.x while a single element of A.y is connected to the scalar B.z.
 
-     \begin{figure}[!htb]\begin{center}
-      \includegraphics[width=.5\textwidth]{images/Graph1}
+    \begin{figure}[!htb]\begin{center}
+      \includegraphics[width=.8\textwidth]{images/Graph1}
       \caption{ Example graph with child nodes for sub-variables \label{fig:subvars}}
     \end{center}\end{figure}
 
-    By representing hierarchical data as a single node, we help keep the overall size of the graph manageable
-    when large chunks of data are being communicated. However, if some small sub-set of that data needs to be
-    used somewhere it is not correct to indicate a dependence on the entire chunk of data. So in this case, a
-    single new node representing the sub-variable is created with its own dependence on the parent variable.
-    This book keeping becomes particularly important for when the graph is used to calculate derivatives or
-    manage the partitioning of distributed data. Both problems contain large design spaces. The CADRE problem 
-    involves about 25000 design variables, and the aero-structural problem involves about 200. 
-    Together these problems demonstrate how OpenMDAO can simplify the process of implementing difficult 
-    design problems with large design spaces and varying kinds of complexity. 
+    By using the sub-variable nodes, the computational advantages of problem sparsity are retained. For example,
+    consider $\frac{\partial B.z}{\partial A.y}$ from Fig. \ref{fig:subvars}. Given the graph, we know that
+    this derivative will be sparse, with only $A.y[2]$ having non-zero values as in eqn.  \ref{eqn:sparse_gradient}. 
+
+    \begin{equation}
+        \frac{\partial B.z}{\partial A.y} =
+        \begin{bmatrix}
+            0 \\
+            0 \\
+            \frac{\partial B.z}{\partial A.y[2]} \\
+            \vdots \\
+            0 \\
+        \end{bmatrix}
+        \label{eqn:sparse_gradient}
+    \end{equation}
+
+    When solving for derivatives, without the sub-var node, you would need to include all the 
+    elements of the $A.y$ array in the linear system for derivatives calculations. 
+    With the sub-var node, only the single relevant value from the array needs to be included. 
+    By representing hierarchical data as a single node, the overall size of the graph 
+    remains manageable, and the sub-var nodes are used to preserve the benefits of sparsity. 
 
 
-    \subsection{Determining Execution Order}
-
-    The OpenMDAO framework uses its dependency graph to determine component execution order by finding the 
-    shortest path from the design variables to the quantities of interest for any given model\cite{openmdao_derivatives}. 
-    This path contains the set of relevant components and variables that make up a sub-graph of the full
-    dependency graph. During execution, only the components in this graph will be executed and they will be executed 
-    in the order prescribed by following the graph path. 
-
-    \subsection{Cycle Detection and Usage}
-    Pate et. al indicate that within a dependency graph, the presence of cycles indicates coupling between
-    the components in the cycle \cite{graph_problem2013}. A cycle can consist of two or more components, and
-    one component may be part of more than one cycle.
-
-    In formal terms, cycles exist in a graph when a group of nodes are strongly connected. The NetworkX package
-    provides an implementation of Tarjans algorithm for finding sets of strongly connected
-    components\cite{tarjan1972depth,nuutila1994finding}. Once found, the presence of these cycles
-    have an impact on how any given model is solved. Firstly during normal execution, these cycles
-    need to be converged with a numerical solver such as Gauss-Seidel or Newton based. 
-    In addition these cycles need to be accounted for when solving for the gradients 
-
-    \subsection{Gradient Calculation}
-    
-    OpenMDAO can calculate a gradient between any set of input and output nodes in the
-    dependency graph by setting up the linear system devised by Martins and Hwang \cite{Martins2012} in their 
-    work developing a unified theory for derivatives computation. 
-    The requested derivatives are calculated from the solution of the set of equations that is assembled
-    from the output-input derivatives of all the components. The number of equations 
-    is determined by the number of variables represented the graph, which means that the linear 
-    system can get very large. To allow for such large systems the full model Jacobian is implemented as 
-    a linear operator, so that it never has to be stored entirely in memory. The
-    linear operator takes a vector as input, and returns the product of the Jacobian with that vector.
-    
-    In Martins and Hwang's original work, they considered all possible variables in their linear system. 
-    By using the dependency graph, OpenMDAO is able to achieve significant reductions computational cost of 
-    solving the linear system. Using the same path finding algorithm for determining execution order, 
-    OpenMDAO finds the reduced set of component nodes and variable nodes that are both downstream of the design parameters
-    and upstream of a specific quantity of interest. One such sub-graph is found for each linear solve necessary to
-    find all the derivatives of the system. It is possible that each sub-graph will contain different sets 
-    of variables and components depending on the structure of the graph. Hence, each linear solve step 
-    is kept to its minimum possible size to keep. 
-
-    For example, the model in Figure \ref{fig:graph2} contains 5 components that run during an analysis. If we
-    want to optimize this model with the given parameter and objective, only the highlighted component nodes
-    will be in the reduced dependency graph, and thus only the highlighted variables appear in the linear
-    system.
-    
-    \begin{figure}[!htb]\begin{center}
-      \includegraphics[width=.8\textwidth]{images/Graph2}
-      \caption{ The reduced graph for the derivatives calculation includes Comps 1, 3, and 5 with their interconnecting variables. \label{fig:graph2}}
-    \end{center}\end{figure}
-
-    \section{Direct vs Adjoint Methods}
-
-    OpenMDAO supports calculating derivatives in two ways: direct and adjoint. The direct method performs
-    one linear solve for each design variable. The adjoint method performs one linear solve per each objective 
-    and constraints. Hence, if you have more design variables than quantities of interest (as if often the case), 
-    the adjoint method will require far fewer solves of the linear system. If you have fewer design variables then 
-    objectives and constraints the forward mode is preferable. 
-
-    \subsection{Efficient Handling of Array Variables}
-        This graph contains all the necessary information to take full advantage of problem sparsity,
-        but suffers from one potential weakness. A naive implementation of Pate et. al.`s graph would have a
-        single node for each scalar value involved. For a problem with millions of state variables, like
-        aerodynamic shape optimization, the graph would get very large and would be inefficient to operate on.
-        To address this issue related variables, such as arrays, can be aggregated into a single node to
-        represent the overall variable. If any specific sub-variable is referenced
-        (e.g., some slice of an array). Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. Here,
-        both outputs A.x and A.y are array variables. The full array A.x is connected to B.x while a single element
-        of A.y is connected to the scalar B.z.
-
-        \begin{figure}[!htb]\begin{center}
-          \includegraphics[width=.8\textwidth]{images/Graph1}
-          \caption{ Example graph with child nodes for sub-variables \label{fig:subvars}}
-        \end{center}\end{figure}
-
-        By using the sub-variable nodes, the computational advantages of problem sparsity are retained. For example,
-        consider $\frac{\partial B.z}{\partial A.y}$ from Fig. \ref{fig:subvars}. Given the graph, we know that
-        this derivative will be sparse, with only $A.y[2]$ having non-zero values. When solving for derivatives,
-        without the sub-var node, you would need to consider all the elements of the $A.y$ array. With them, only
-        the single relevant value from the array needs to be considered.
-
-        \begin{equation}
-            \frac{\partial B.z}{\partial A.y} =
-            \begin{bmatrix}
-                0 \\
-                0 \\
-                \frac{\partial B.z}{\partial A.y[2]} \\
-                \vdots \\
-                0 \\
-            \end{bmatrix}
-        \end{equation}
-
-    \subsection{Graph Traversal and Determining Relevance}
-
-
-        The requested derivatives are calculated from the solution of the set of equations that is assembled
-        from the output-input derivatives of all the components. The number of equations
-        is determined by the number of variables represented the graph, which means that the linear
-        system can get very large. To allow for such large systems the full model Jacobian is implemented as
-        a linear operator, so that it never has to be stored entirely in memory. The
-        linear operator takes a vector as input, and returns the product of the Jacobian with that vector.
-
-        In Martins and Hwang's original work, they considered all possible variables in their linear system.
-        By using the dependency graph, OpenMDAO is able to achieve significant reductions computational cost of
-        solving the linear system. Using the same path finding algorithm for determining execution order,
-        OpenMDAO finds the reduced set of component nodes and variable nodes that are both downstream of the design parameters
-        and upstream of a specific quantity of interest. One such sub-graph is found for each linear solve necessary to
-        find all the derivatives of the system. It is possible that each sub-graph will contain different sets
-        of variables and components depending on the structure of the graph. Hence, each linear solve step
-        is kept to its minimum possible size to keep.
-
-        For example, the model in Figure \ref{fig:graph2} contains 5 components that run during an analysis. If we
-        want to optimize this model with the given parameter and objective, only the highlighted component nodes
-        will be in the reduced dependency graph, and thus only the highlighted variables appear in the linear
-        system.
+    \subsection{Graph Traversal Determining Relevance}
+        
+        OpenMDAO can calculate a gradient between any set of input and output nodes in the
+        dependency graph by setting up the appropriate linear system. The size of the linear system
+        is determined by the number of variables being considered, which means that the linear 
+        system can get very large. OpenMDAO is able to achieve significant reductions in the 
+        size of the linear system by traversing the dependency graph to find the sub-set of relevant variables.
+        For example, consider the notional graph in Fig. \ref{fig:graph2}. Considering $\frac{\partial Obj}{\partial param}$, 
+        the relevant components variables and components are highlighted. Only Components 1, 3, and 5 are needed, 
+        and furthermore only $C3.a$ is needed from Component 3. 
 
         \begin{figure}[!htb]\begin{center}
           \includegraphics[width=.8\textwidth]{images/Graph2}
-          \caption{ The reduced graph for the derivatives calculation includes Comps 1, 3, and 5 with their interconnecting variables. \label{fig:graph2}}
+          \caption{ The reduced graph for the derivatives calculation includes Comps 1, 3, 
+          and 5 with their interconnecting variables. \label{fig:graph2}}
         \end{center}\end{figure}
 
-
-    \subsection{Graph Cycles and Coupled Derivatives}
-
+        A sub-graph like the one in Fig. \ref{fig:graph2} can be found that gives
+        the minimum relevant set of components and variables necessary to solve for a specific 
+        gradient. 
+        
+        
+    \subsection{Cycle Detection and Usage}
         Pate et. al indicate that within a dependency graph, the presence of cycles indicates coupling between
         the components in the cycle \cite{graph_problem2013}. A cycle can consist of two or more components, and
         one component may be part of more than one cycle.
@@ -301,8 +214,8 @@
         provides an implementation of Tarjans algorithm for finding sets of strongly connected
         components\cite{tarjan1972depth,nuutila1994finding}. Once found, the presence of these cycles
         have an impact on how any given model is solved. Firstly during normal execution, these cycles
-        need to be converged with a numerical solver such as Gauss-Seidel or Newton based.
-        In addition these cycles need to be accounted for when solving for the gradients
+        need to be converged with a numerical solver such as Gauss-Seidel or Newton based. 
+        In addition these cycles need to be accounted for when solving for the gradients 
 
 
     \section{API for Specifying Discipline Derivatives (Tristan)}
@@ -339,77 +252,74 @@
 
 
 
-  \section{Small Satellite Design Problem (Tristan)}
+    \section{Small Satellite Design Problem (Tristan)}
 
-  CADRE (Cubesat investigating Atmospheric Density Response to Extreme driving)
-  is a mission funded by the National Science Foundation to study the
-  response of the thermosphere to auroral phenomena\cite{cutler2011cubesat}.
+    CADRE (Cubesat investigating Atmospheric Density Response to Extreme driving)
+    is a mission funded by the National Science Foundation to study the
+    response of the thermosphere to auroral phenomena\cite{cutler2011cubesat}. 
+    The small satellite design problem optimizes the design of a cubsat for the CADRE mission. 
+    This problem was originally implemented and solved by Hwang et. al\cite{CADRE2012} using 
+    Martins and Hwang's matrix-free gradient strategy. The analysis models the interaction of several 
+    disciplines (attitude control, communications, power and energy storage system, thermal dynamics, craft orbital 
+    dynamics, and sun-earth position) over the course of a one year mission. Specifically, 
+    the system is modeled over the course of six separate half-days of operation, computed at conditions
+    1, 3, 5, 7, 9, and 11 months after launch. The goal was to balance performance under diverse conditions (such as relative 
+    location of the sun, etc.) seen over the course of the mission.
 
     \subsection{Problem Formulation}
 
-      The satellite design problem represents a class of problems with medium complexity and medium fidelity.
-      A graph-free gradient based approach at multidisciplinary optimization of the satellite
-      problem has previously been used successfully\cite{CADRE2012}. We have implemented
-      the same problem formulation using OpenMDAO.
+    \begin{align}
+        \\\txt{max.} &\ \ \sum_{i=1}^6 Data_i \notag
+        \\\txt{w.r.t.} & \ \ 0 \le I_{setpt} \le 4 \notag
+        \\     & \ \ 0 \le P_{comm} \le 25 \notag
+        \\     & \ \ 0 \le cellInstd \le 1 \notag
+        \\     & \ \ 0 \le finAngle \le \pi/2 \notag
+        \\     & \ \ 0 \le antAngle \le \pi \notag
+        \\     & \ \ 0.2 \le iSOC \le 1 \notag
+        \\\txt{s.t.} & \ \ I_{bat} - 5 \le 0 \notag
+        \\     & \ \ -10 - I_{bat} \le 0 \notag
+        \\     & \ \ 0.2 - SOC \le 0 \notag
+        \\     & \ \ SOC - 1 \le 0 \notag
+        \\     & \ \ fSOC - iSOC = 0 \notag
+        \label{eqn:cadre_formulation}
+    \end{align}
 
-The CADRE problem models the interaction of several disciplines (attitude control, communications, power and energy
-storage system, thermal dynamics, craft orbital dynamics, and sun-earth position) over the course of a one year mission.
-Specifically, the system is modeled over the course of six separate half-days of operation, computed at conditions
-1, 3, 5, 7, 9, and 11 months after launch. This way, design parameters can be optimized to balance performance under
-diverse conditions (such as relative location of the sun, etc.) over the course of the mission. The objective of the
-optimization is to maximize the total amount of data transmitted to the ground station (Ann Arbor, MI) over these six
-design points. Figure \ref{fig:cadre_graph} shows the interaction among the separate disciplines of the CADRE optimization problem. Very thorough descriptions of the engineering modeled by each discipline are given by Hwang et. al. in their original paper on the optimization of CADRE\cite{CADRE2012}.
+    The objective of the optimization is to maximize the total amount of data transmitted to the ground 
+    station (Ann Arbor, MI) over these six design points. There are six 7 design varibles listed in Eqn. \ref{eqn:sellar_formulation}.
+    3 of them, $\gamma$, $I_{setpt}$, and $P_{comm}$, are arrays of time varying schedules for the attitude, 
+    solar panel current, and communications power respectively. The remaining 4, $cellInstd$, $finAngle$, $antAngle$, $iSOC$, 
+    are all physical design variables of the satellite. All together there are 25,292 design variables. 
+    The 5 constraints for the problem relate to the battery charge rate, battery discharge rate, 
+    minimum battery capacity, maximum battery capacity, and a battery state-of-charge periodicity 
+    constraint. Each constraint is a length 6 vector with a value representing each of the 6 different 
+    orbits, yielding a total of 30 constraints. Since the problem has significantly more design 
+    variables than it does objectives and constraints, the problem was solved using adjoint gradients. 
 
-        \begin{figure}[!htb]\begin{center}
-          \includegraphics[width=1.1\textwidth]{images/CADRE.pdf}
-          \caption{ Dependency graph for the satellite problem. \label{fig:cadre_graph}}
-        \end{center}\end{figure}
+    \begin{figure}[!htbp]
+        \centering
+        \includegraphics[width=0.95\textwidth]{images/cadre_xdsm}
+        \caption{XDSM diagram showing the general structure of the small satellite design problem}
+        \label{fig:cadre_xdsm}
+    \end{figure}
 
-Seven types of design parameters are involved. Four of these design parameters vary over time: current of each solar
-cell $Isetpt$, the craft roll angle $\gamma$, communications system power $P_{comm}$, and battery initial state of
-charge $iSOC$.
+    Overall the problem can be broken down into 7 distinct disciplines: orbit dynamics, attitude dynamics, cell illumination, 
+    temperature, solar power, energy storage, and communication. Figure \ref{fig:cadre_xdsm} shows how each of the disciplines
+    relate to each other in the optimization problem. The actual implementation of the problem further 
+    subdivided most of the disciplines into smaller sub-disciplines. The true component level dependency 
+    graph, given in Fig. \ref{fig:cadre_graph}, has 39 different components. The full graph, including all variable and 
+    sub-variable nodes, is omitted for visual clarity. 
 
-The remaining three design variables are static: the choice of whether solar panel or radiator is installed in a
-particular location on the craft $Cellinstd$, the angle of the four fins $finAngle$, and the angle of the
-communications antenna $antAngle$.
+    From a problem structure standpoint, this problem has three significant features. Firstly, the large number of 
+    disciplines, design variables, and the complex connections between them make assembling the linear system to solve for gradients 
+    challenging to do by hand. Secondly, although the problem does not have any explicit interdisciplinary coupling, 
+    there is coupling from the SOC periodicity constraint, $fSOC - iSOC = 0$, which is dependent on many of the 
+    disciplines. Thirdly, all disciplines were implemented with analytic derivatives so that no finite differencing was 
+    necessary. 
 
-The CADRE model is parameterized by the number of discrete time steps desired $n$ as well as a number of B-spline
-control points $m$ used to interpolate the design variables to arrays of size $n$ (in the array dimension
-representing time). So $m$ has direct influence on the number of the time-varying design variables in the problem,
-while $n$ controls the fidelity of the results.
-
-Five constraints for the problem relate to the battery charge rate, battery discharge rate, minimum
-battery capacity, maximum battery capacity, and a battery state-of-charge periodicity constraint. Equation \ref{eqn:sellar_formulation} summarizes the fundamental problem formulation for CADRE.
-
-        \begin{align}
-            \\\txt{max.} &\ \ \sum_{i=1}^6 D_i \notag
-            \\\txt{w.r.t.} & \ \ 0 \le I_{setpt} \le 4 \notag
-            \\     & \ \ 0 \le P_{comm} \le 25 \notag
-            \\     & \ \ 0 \le cellInstd \le 1 \notag
-            \\     & \ \ 0 \le finAngle \le \pi/2 \notag
-            \\     & \ \ 0 \le antAngle \le \pi \notag
-            \\     & \ \ 0.2 \le iSOC \le 1 \notag
-            \\\txt{s.t.} & \ \ I_{bat} - 5 \le 0 \notag
-            \\     & \ \ -10 - I_{bat} \le 0 \notag
-            \\     & \ \ 0.2 - SOC \le 0 \notag
-            \\     & \ \ SOC - 1 \le 0 \notag
-            \\     & \ \ fSOC - iSOC = 0 \notag
-            \label{eqn:sellar_formulation}
-        \end{align}
-
-
-The values for $n$ and $m$ were set to 1500 and 300 respectively, which gives a full design problem with over
-25,000 design variables. The graph structure of OpenMDAO's derivatives system together with high-performance
-optimizers enabled a problem of this size to be solved efficiently.
-
-
-        [Insert XDSM HERE]
-
-        \begin{itemize}
-            \item this problem uses adjoint
-            \item all analytic gradients
-        \end{itemize}
-
+    \begin{figure}[!htb]\begin{center}
+      \includegraphics[width=1.1\textwidth]{images/CADRE.pdf}
+      \caption{ Dependency graph for the satellite problem. \label{fig:cadre_graph}}
+    \end{center}\end{figure}
 
     \subsection{Results}
 
@@ -546,13 +456,46 @@ optimizers enabled a problem of this size to be solved efficiently.
 
 
   \section{Wind Turbine Design Problem (Justin/Andrew)}
+
+    The goal of this design problem is to perform an aero-structural optimization of 
+    a rotor for a horizontal axis wind turbine to maximize its annual energy production. 
+    The problem considers the design of the both the rotor and the tower. The structure of
+    this problem is much more complex than the small satellite design problem, with 
+    nested sub-assemblies of components and more interdisciplinary coupling. However, 
+    the problem also has a dramatically smaller design space. 
+
+
     \subsection{Problem Formulation}
-        \begin{itemize}
-            \item Design variables, objectives, constraints.
-            \item this problem uses forward
-            \item mixed analytic and FD gradients
-            \item non-relevant, but non-differentiable variables
-        \end{itemize}
+        The problem formulation is given by: 
+
+        \begin{align}
+            \\\txt{max.} &\ \ \sum_{i=1}^6 D_i \notag
+            \\\txt{w.r.t.} & \ \ 0 \le I_{setpt} \le 4 \notag
+            \\     & \ \ 0 \le P_{comm} \le 25 \notag
+            \\     & \ \ 0 \le cellInstd \le 1 \notag
+            \\     & \ \ 0 \le finAngle \le \pi/2 \notag
+            \\     & \ \ 0 \le antAngle \le \pi \notag
+            \\     & \ \ 0.2 \le iSOC \le 1 \notag
+            \\\txt{s.t.} & \ \ I_{bat} - 5 \le 0 \notag
+            \\     & \ \ -10 - I_{bat} \le 0 \notag
+            \\     & \ \ 0.2 - SOC \le 0 \notag
+            \\     & \ \ SOC - 1 \le 0 \notag
+            \\     & \ \ fSOC - iSOC = 0 \notag
+            \label{eqn:wt_formulation}
+        \end{align}
+
+        The problem has XX design variables, 1 objective, and YY constraints. Since there are more 
+        quantities of interest than design variables, this problem called for forward derivatives calculations. 
+        The lower number of design variables make it feasible to solve this problem 
+        with finite difference gradients. 
+
+
+        % \begin{itemize}
+        %     \item Design variables, objectives, constraints.
+        %     \item this problem uses forward
+        %     \item mixed analytic and FD gradients
+        %     \item non-relevant, but non-differentiable variables
+        % \end{itemize}
 
     \subsection{Results}
         \begin{itemize}
