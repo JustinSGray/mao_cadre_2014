@@ -259,33 +259,41 @@
     response of the thermosphere to auroral phenomena\cite{cutler2011cubesat}. 
     The small satellite design problem optimizes the design of a cubsat for the CADRE mission. 
     This problem was originally implemented and solved by Hwang et. al\cite{CADRE2012} using 
-    Martins and Hwang's matrix-free gradient strategy. The analysis models the interaction of several 
-    disciplines (attitude control, communications, power and energy storage system, thermal dynamics, craft orbital 
-    dynamics, and sun-earth position) over the course of a one year mission. Specifically, 
-    the system is modeled over the course of six separate half-days of operation, computed at conditions
-    1, 3, 5, 7, 9, and 11 months after launch. The goal was to balance performance under diverse conditions (such as relative 
-    location of the sun, etc.) seen over the course of the mission.
+    Martins and Hwang's matrix-free gradient strategy. The analysis models the orbit of a cubesat 
+    as it performs a mission over the course of a one year. The full mission is represented by  
+    by six half-days of operation, computed at conditions 1, 3, 5, 7, 9, and 11 months after launch. 
 
-    \subsection{Problem Formulation}
-
-    \begin{align}
-        \\\txt{max.} &\ \ \sum_{i=1}^6 Data_i \notag
-        \\\txt{w.r.t.} & \ \ 0 \le I_{setpt} \le 4 \notag
-        \\     & \ \ 0 \le P_{comm} \le 25 \notag
-        \\     & \ \ 0 \le cellInstd \le 1 \notag
-        \\     & \ \ 0 \le finAngle \le \pi/2 \notag
-        \\     & \ \ 0 \le antAngle \le \pi \notag
-        \\     & \ \ 0.2 \le iSOC \le 1 \notag
-        \\\txt{s.t.} & \ \ I_{bat} - 5 \le 0 \notag
-        \\     & \ \ -10 - I_{bat} \le 0 \notag
-        \\     & \ \ 0.2 - SOC \le 0 \notag
-        \\     & \ \ SOC - 1 \le 0 \notag
-        \\     & \ \ fSOC - iSOC = 0 \notag
+    \begin{table}
+        \centering
+        \begin{tabular}{r l l l}
+            \hline
+            & Variable/function & Description & Quantity \\
+            \hline
+            maximize            & $\sum_{i=1}^6 D_i$ & Data downloaded \\
+            \\
+            with respect to & $0 \le I_\text{setpt} \le 0.4$ & Solar panel current & $300 \times 12 \times 6$ \\
+                                    & $0 \le \gamma \le \pi / 2$ & Roll-angle profile & $300 \times 6$ \\
+                                    & $0 \le P_\text{comm} \le 25$ & Communication power & $300 \times 6$ \\
+                                    & $0 \le \text{cellInstd} \le 1$ & Cell vs. radiator & $84$ \\
+                                    & $0 \le \text{finAngle} \le \pi / 2$ & Fin angle & $1$ \\
+                                    & $0 \le \text{antAngle} \le \pi$ & Antenna angle & $1$ \\
+                                    & $0.2 \le iSOC \le 1$ & Initial state of charge & $6$ \\
+                                    & & Total & $25292$ \\
+            \\
+            subject to          & $I_\text{bat} - 5 \le 0$ & Battery charge constraint & $6$ \\
+                                    & $-10 - I_\text{bat} \le 0$ & Battery discharge constraint & $6$ \\
+                                    & $0.2 - SOC \le 0$ & Battery capacity constraint & $6$ \\
+                                    & $SOC - 1 \le 0$ & Battery capacity constraint & $6$ \\    
+                                    & $fSOC - iSOC = 0$ & SOC periodicity constraint & $6$ \\   
+                                    & & Total & $30$ \\     
+            \hline                  
+        \end{tabular}
+        \caption{small satellite design problem formulation}
         \label{eqn:cadre_formulation}
-    \end{align}
+    \end{table}
 
-    The objective of the optimization is to maximize the total amount of data transmitted to the ground 
-    station (Ann Arbor, MI) over these six design points. There are six 7 design varibles listed in Eqn. \ref{eqn:sellar_formulation}.
+    The objective of the optimization was to maximize the total amount of data transmitted to the ground 
+    station, located in Ann Arbor, MI, over these six design points. There are 7 design varibles listed in Tabl. \ref{eqn:cadre_formulation}.
     3 of them, $\gamma$, $I_{setpt}$, and $P_{comm}$, are arrays of time varying schedules for the attitude, 
     solar panel current, and communications power respectively. The remaining 4, $cellInstd$, $finAngle$, $antAngle$, $iSOC$, 
     are all physical design variables of the satellite. All together there are 25,292 design variables. 
@@ -298,7 +306,7 @@
     \begin{figure}[!htbp]
         \centering
         \includegraphics[width=0.95\textwidth]{images/cadre_xdsm}
-        \caption{XDSM diagram showing the general structure of the small satellite design problem}
+        \caption{XDSM diagram showing the structure of the small satellite design problem}
         \label{fig:cadre_xdsm}
     \end{figure}
 
@@ -321,9 +329,7 @@
       \caption{ Dependency graph for the satellite problem. \label{fig:cadre_graph}}
     \end{center}\end{figure}
 
-    \subsection{Results}
-
-        \subsection{Optimization Results}
+    \subsection{Optimization Results}
 
         The OpenMDAO implementation of the satellite problem was executed on a
         Macbook Pro (2.3 Ghz Core i7 processor, 4GB 1600 Mhz DDR3 memory, running OSX 10.8.5)
@@ -457,45 +463,83 @@
 
   \section{Wind Turbine Design Problem (Justin/Andrew)}
 
-    The goal of this design problem is to perform an aero-structural optimization of 
-    a rotor for a horizontal axis wind turbine to maximize its annual energy production. 
-    The problem considers the design of the both the rotor and the tower. The structure of
-    this problem is much more complex than the small satellite design problem, with 
-    nested sub-assemblies of components and more interdisciplinary coupling. However, 
-    the problem also has a dramatically smaller design space. 
+    The goal of this design problem was to optimize a horizontal axis wind turbine
+    to maximize annual energy production. The problem considers the design of 
+    the the rotor blades from an aero-structural perspective as well as the structural requirements of the tower. The analyses for this model were originally developed 
+    by Ning et. al as part of a larger effort to develop a cost based design optimization
+    for wind turbines[CITATION NEEDED].
 
+    The problem formulation is given by: [Insert real problem formulation here]
 
-    \subsection{Problem Formulation}
-        The problem formulation is given by: 
+    \begin{align}
+        \\\txt{max.} &\ \ \sum_{i=1}^6 D_i \notag
+        \\\txt{w.r.t.} & \ \ 0 \le I_{setpt} \le 4 \notag
+        \\     & \ \ 0 \le P_{comm} \le 25 \notag
+        \\     & \ \ 0 \le cellInstd \le 1 \notag
+        \\     & \ \ 0 \le finAngle \le \pi/2 \notag
+        \\     & \ \ 0 \le antAngle \le \pi \notag
+        \\     & \ \ 0.2 \le iSOC \le 1 \notag
+        \\\txt{s.t.} & \ \ I_{bat} - 5 \le 0 \notag
+        \\     & \ \ -10 - I_{bat} \le 0 \notag
+        \\     & \ \ 0.2 - SOC \le 0 \notag
+        \\     & \ \ SOC - 1 \le 0 \notag
+        \\     & \ \ fSOC - iSOC = 0 \notag
+        \label{eqn:wt_formulation}
+    \end{align}
 
-        \begin{align}
-            \\\txt{max.} &\ \ \sum_{i=1}^6 D_i \notag
-            \\\txt{w.r.t.} & \ \ 0 \le I_{setpt} \le 4 \notag
-            \\     & \ \ 0 \le P_{comm} \le 25 \notag
-            \\     & \ \ 0 \le cellInstd \le 1 \notag
-            \\     & \ \ 0 \le finAngle \le \pi/2 \notag
-            \\     & \ \ 0 \le antAngle \le \pi \notag
-            \\     & \ \ 0.2 \le iSOC \le 1 \notag
-            \\\txt{s.t.} & \ \ I_{bat} - 5 \le 0 \notag
-            \\     & \ \ -10 - I_{bat} \le 0 \notag
-            \\     & \ \ 0.2 - SOC \le 0 \notag
-            \\     & \ \ SOC - 1 \le 0 \notag
-            \\     & \ \ fSOC - iSOC = 0 \notag
-            \label{eqn:wt_formulation}
-        \end{align}
+    There are ZZ disciplines involved in the modeling, as seen in Fig. \ref{fig:xdsm_wt}. 
+    There are AA design variables, 1 objective, and BB constraints. Since there are 
+    less design variables then quantities of interest, the problem was solved with 
+    forward derivatives. In addition, the relatively small size of the design space 
+    enabled the use of both analytic and finite difference gradients. 
+    
 
-        The problem has XX design variables, 1 objective, and YY constraints. Since there are more 
-        quantities of interest than design variables, this problem called for forward derivatives calculations. 
-        The lower number of design variables make it feasible to solve this problem 
-        with finite difference gradients. 
+    \begin{figure}[!htbp]
+        \centering
+        [INSERT XDSM Diagram]
+        %\includegraphics[width=0.95\textwidth]{}
+        \caption{XDSM diagram of the wind turbine design optimization}
+        \label{fig:xdsm_wt}
+    \end{figure}
 
+    The aerodynamics discipline is modeled with a blade element
+    momentum (BEM) tool, CCBlade\cite{NING:BEM}. The use of CCBlade is significant because
+    it implements a version BEM specifically tailored to optimization. 
+    Similar to the small satellite design problem, many of the disciplines were further 
+    sub-divided into more than one component for implementation. However, in the 
+    satellite problem, all components were left at the same level in the model. For this 
+    problem the components representing the XXX and YYY disciplines were 
+    grouped into sub-assemblies. Figure \ref{fig:wt_top_depgraph} shows the 
+    top level dependency graph for the problem. The XXX discipline assembly dependency 
+    graph is in Fig. \ref{fig:wt_sub_depgraph} shows the internal configuration 
+    of components, as well as their links to the top level model.  
 
-        % \begin{itemize}
-        %     \item Design variables, objectives, constraints.
-        %     \item this problem uses forward
-        %     \item mixed analytic and FD gradients
-        %     \item non-relevant, but non-differentiable variables
-        % \end{itemize}
+    \begin{figure}[!htbp]
+        \centering
+        [Insert Top Level Dependency Graph]
+        %\includegraphics[width=0.95\textwidth]{}
+        \caption{Wind turbine problem top level dependency graph}
+        \label{fig:wt_top_depgraph}
+    \end{figure}
+
+    \begin{figure}[!htbp]
+        \centering
+        [Insert Sub-Assembly Dependency Graphs]
+        %\includegraphics[width=0.95\textwidth]{}
+        \caption{Sub-assembly XXX dependency graph}
+        \label{fig:wt_sub_depgraph}
+    \end{figure}
+    
+
+    This problem has one additional interesting characteristic with regards to its 
+    problem formulation. It has a number of data connections throughout the dependency 
+    graph which are never relevant to the derivatives calculations. These non-relevant 
+    variables are used for various settings and initialization values throughout the
+    model. The interesting effect of these variables it that they necessitate the 
+    graph based approach to identifying irrelevant variables. Without that, these 
+    variables would be included in the linear systems for derivatives causing erroneous 
+    results. 
+
 
     \subsection{Results}
         \begin{itemize}
