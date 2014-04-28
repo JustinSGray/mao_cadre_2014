@@ -46,6 +46,7 @@
 \usepackage{minted}
 \usepackage{color}
 \usepackage{appendix}
+\usepackage{listings}
 \usepackage[section]{placeins}
 
 \newcommand{\txt}{\textrm}
@@ -145,14 +146,14 @@
       \caption{ Dependency graph for the Sellar problem. \label{fig:sellar_graph}}
     \end{center}\end{figure}
 
-    In the original graph syntax, a single node is given for every variable. This graph contains all the 
-    necessary information to take full advantage of problem sparsity, but suffers from one potential 
-    weakness. For a problem with millions of state variables, like aerodynamic shape optimization, 
-    the graph would get very large and would be inefficient to operate on. To address this issue 
-    related variables, such as arrays, can be aggregated into a single node to represent the 
-    overall variable. If any specific sub-variable is referenced (e.g., some slice of an array). 
+    In the original graph syntax, a single node is given for every variable. This graph contains all the
+    necessary information to take full advantage of problem sparsity, but suffers from one potential
+    weakness. For a problem with millions of state variables, like aerodynamic shape optimization,
+    the graph would get very large and would be inefficient to operate on. To address this issue
+    related variables, such as arrays, can be aggregated into a single node to represent the
+    overall variable. If any specific sub-variable is referenced (e.g., some slice of an array).
     Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. Here,
-    both outputs A.x and A.y are array variables. The full array A.x is connected to 
+    both outputs A.x and A.y are array variables. The full array A.x is connected to
     B.x while a single element of A.y is connected to the scalar B.z.
 
     \begin{figure}[!htb]\begin{center}
@@ -162,7 +163,7 @@
 
     By using the sub-variable nodes, the computational advantages of problem sparsity are retained. For example,
     consider $\frac{\partial B.z}{\partial A.y}$ from Fig. \ref{fig:subvars}. Given the graph, we know that
-    this derivative will be sparse, with only $A.y[2]$ having non-zero values as in eqn.  \ref{eqn:sparse_gradient}. 
+    this derivative will be sparse, with only $A.y[2]$ having non-zero values as in eqn.  \ref{eqn:sparse_gradient}.
 
     \begin{equation}
         \frac{\partial B.z}{\partial A.y} =
@@ -176,35 +177,35 @@
         \label{eqn:sparse_gradient}
     \end{equation}
 
-    When solving for derivatives, without the sub-var node, you would need to include all the 
-    elements of the $A.y$ array in the linear system for derivatives calculations. 
-    With the sub-var node, only the single relevant value from the array needs to be included. 
-    By representing hierarchical data as a single node, the overall size of the graph 
-    remains manageable, and the sub-var nodes are used to preserve the benefits of sparsity. 
+    When solving for derivatives, without the sub-var node, you would need to include all the
+    elements of the $A.y$ array in the linear system for derivatives calculations.
+    With the sub-var node, only the single relevant value from the array needs to be included.
+    By representing hierarchical data as a single node, the overall size of the graph
+    remains manageable, and the sub-var nodes are used to preserve the benefits of sparsity.
 
 
     \subsection{Graph Traversal Determining Relevance}
-        
+
         OpenMDAO can calculate a gradient between any set of input and output nodes in the
         dependency graph by setting up the appropriate linear system. The size of the linear system
-        is determined by the number of variables being considered, which means that the linear 
-        system can get very large. OpenMDAO is able to achieve significant reductions in the 
+        is determined by the number of variables being considered, which means that the linear
+        system can get very large. OpenMDAO is able to achieve significant reductions in the
         size of the linear system by traversing the dependency graph to find the sub-set of relevant variables.
-        For example, consider the notional graph in Fig. \ref{fig:graph2}. Considering $\frac{\partial Obj}{\partial param}$, 
-        the relevant components variables and components are highlighted. Only Components 1, 3, and 5 are needed, 
-        and furthermore only $C3.a$ is needed from Component 3. 
+        For example, consider the notional graph in Fig. \ref{fig:graph2}. Considering $\frac{\partial Obj}{\partial param}$,
+        the relevant components variables and components are highlighted. Only Components 1, 3, and 5 are needed,
+        and furthermore only $C3.a$ is needed from Component 3.
 
         \begin{figure}[!htb]\begin{center}
           \includegraphics[width=.8\textwidth]{images/Graph2}
-          \caption{ The reduced graph for the derivatives calculation includes Comps 1, 3, 
+          \caption{ The reduced graph for the derivatives calculation includes Comps 1, 3,
           and 5 with their interconnecting variables. \label{fig:graph2}}
         \end{center}\end{figure}
 
         A sub-graph like the one in Fig. \ref{fig:graph2} can be found that gives
-        the minimum relevant set of components and variables necessary to solve for a specific 
-        gradient. 
-        
-        
+        the minimum relevant set of components and variables necessary to solve for a specific
+        gradient.
+
+
     \subsection{Cycle Detection and Usage}
         Pate et. al indicate that within a dependency graph, the presence of cycles indicates coupling between
         the components in the cycle \cite{graph_problem2013}. A cycle can consist of two or more components, and
@@ -214,8 +215,8 @@
         provides an implementation of Tarjans algorithm for finding sets of strongly connected
         components\cite{tarjan1972depth,nuutila1994finding}. Once found, the presence of these cycles
         have an impact on how any given model is solved. Firstly during normal execution, these cycles
-        need to be converged with a numerical solver such as Gauss-Seidel or Newton based. 
-        In addition these cycles need to be accounted for when solving for the gradients 
+        need to be converged with a numerical solver such as Gauss-Seidel or Newton based.
+        In addition these cycles need to be accounted for when solving for the gradients
 
 
     \section{API for Specifying Discipline Derivatives (Tristan)}
@@ -256,12 +257,12 @@
 
     CADRE (Cubesat investigating Atmospheric Density Response to Extreme driving)
     is a mission funded by the National Science Foundation to study the
-    response of the thermosphere to auroral phenomena\cite{cutler2011cubesat}. 
-    The small satellite design problem optimizes the design of a cubsat for the CADRE mission. 
-    This problem was originally implemented and solved by Hwang et. al\cite{CADRE2012} using 
-    Martins and Hwang's matrix-free gradient strategy. The analysis models the orbit of a cubesat 
-    as it performs a mission over the course of a one year. The full mission is represented by  
-    by six half-days of operation, computed at conditions 1, 3, 5, 7, 9, and 11 months after launch. 
+    response of the thermosphere to auroral phenomena\cite{cutler2011cubesat}.
+    The small satellite design problem optimizes the design of a cubsat for the CADRE mission.
+    This problem was originally implemented and solved by Hwang et. al\cite{CADRE2012} using
+    Martins and Hwang's matrix-free gradient strategy. The analysis models the orbit of a cubesat
+    as it performs a mission over the course of a one year. The full mission is represented by
+    by six half-days of operation, computed at conditions 1, 3, 5, 7, 9, and 11 months after launch.
 
     \begin{table}
         \centering
@@ -283,25 +284,25 @@
             subject to          & $I_\text{bat} - 5 \le 0$ & Battery charge constraint & $6$ \\
                                     & $-10 - I_\text{bat} \le 0$ & Battery discharge constraint & $6$ \\
                                     & $0.2 - SOC \le 0$ & Battery capacity constraint & $6$ \\
-                                    & $SOC - 1 \le 0$ & Battery capacity constraint & $6$ \\    
-                                    & $fSOC - iSOC = 0$ & SOC periodicity constraint & $6$ \\   
-                                    & & Total & $30$ \\     
-            \hline                  
+                                    & $SOC - 1 \le 0$ & Battery capacity constraint & $6$ \\
+                                    & $fSOC - iSOC = 0$ & SOC periodicity constraint & $6$ \\
+                                    & & Total & $30$ \\
+            \hline
         \end{tabular}
         \caption{small satellite design problem formulation}
         \label{eqn:cadre_formulation}
     \end{table}
 
-    The objective of the optimization was to maximize the total amount of data transmitted to the ground 
+    The objective of the optimization was to maximize the total amount of data transmitted to the ground
     station, located in Ann Arbor, MI, over these six design points. There are 7 design varibles listed in Tabl. \ref{eqn:cadre_formulation}.
-    3 of them, $\gamma$, $I_{setpt}$, and $P_{comm}$, are arrays of time varying schedules for the attitude, 
-    solar panel current, and communications power respectively. The remaining 4, $cellInstd$, $finAngle$, $antAngle$, $iSOC$, 
-    are all physical design variables of the satellite. All together there are 25,292 design variables. 
-    The 5 constraints for the problem relate to the battery charge rate, battery discharge rate, 
-    minimum battery capacity, maximum battery capacity, and a battery state-of-charge periodicity 
-    constraint. Each constraint is a length 6 vector with a value representing each of the 6 different 
-    orbits, yielding a total of 30 constraints. Since the problem has significantly more design 
-    variables than it does objectives and constraints, the problem was solved using adjoint gradients. 
+    3 of them, $\gamma$, $I_{setpt}$, and $P_{comm}$, are arrays of time varying schedules for the attitude,
+    solar panel current, and communications power respectively. The remaining 4, $cellInstd$, $finAngle$, $antAngle$, $iSOC$,
+    are all physical design variables of the satellite. All together there are 25,292 design variables.
+    The 5 constraints for the problem relate to the battery charge rate, battery discharge rate,
+    minimum battery capacity, maximum battery capacity, and a battery state-of-charge periodicity
+    constraint. Each constraint is a length 6 vector with a value representing each of the 6 different
+    orbits, yielding a total of 30 constraints. Since the problem has significantly more design
+    variables than it does objectives and constraints, the problem was solved using adjoint gradients.
 
     \begin{figure}[!htbp]
         \centering
@@ -310,19 +311,19 @@
         \label{fig:cadre_xdsm}
     \end{figure}
 
-    Overall the problem can be broken down into 7 distinct disciplines: orbit dynamics, attitude dynamics, cell illumination, 
+    Overall the problem can be broken down into 7 distinct disciplines: orbit dynamics, attitude dynamics, cell illumination,
     temperature, solar power, energy storage, and communication. Figure \ref{fig:cadre_xdsm} shows how each of the disciplines
-    relate to each other in the optimization problem. The actual implementation of the problem further 
-    subdivided most of the disciplines into smaller sub-disciplines. The true component level dependency 
-    graph, given in Fig. \ref{fig:cadre_graph}, has 39 different components. The full graph, including all variable and 
-    sub-variable nodes, is omitted for visual clarity. 
+    relate to each other in the optimization problem. The actual implementation of the problem further
+    subdivided most of the disciplines into smaller sub-disciplines. The true component level dependency
+    graph, given in Fig. \ref{fig:cadre_graph}, has 39 different components. The full graph, including all variable and
+    sub-variable nodes, is omitted for visual clarity.
 
-    From a problem structure standpoint, this problem has three significant features. Firstly, the large number of 
-    disciplines, design variables, and the complex connections between them make assembling the linear system to solve for gradients 
-    challenging to do by hand. Secondly, although the problem does not have any explicit interdisciplinary coupling, 
-    there is coupling from the SOC periodicity constraint, $fSOC - iSOC = 0$, which is dependent on many of the 
-    disciplines. Thirdly, all disciplines were implemented with analytic derivatives so that no finite differencing was 
-    necessary. 
+    From a problem structure standpoint, this problem has three significant features. Firstly, the large number of
+    disciplines, design variables, and the complex connections between them make assembling the linear system to solve for gradients
+    challenging to do by hand. Secondly, although the problem does not have any explicit interdisciplinary coupling,
+    there is coupling from the SOC periodicity constraint, $fSOC - iSOC = 0$, which is dependent on many of the
+    disciplines. Thirdly, all disciplines were implemented with analytic derivatives so that no finite differencing was
+    necessary.
 
     \begin{figure}[!htb]\begin{center}
       \includegraphics[width=1.1\textwidth]{images/CADRE.pdf}
@@ -464,8 +465,8 @@
   \section{Wind Turbine Design Problem (Justin/Andrew)}
 
     The goal of this design problem was to optimize a horizontal axis wind turbine
-    to maximize annual energy production. The problem considers the design of 
-    the the rotor blades from an aero-structural perspective as well as the structural requirements of the tower. The analyses for this model were originally developed 
+    to maximize annual energy production. The problem considers the design of
+    the the rotor blades from an aero-structural perspective as well as the structural requirements of the tower. The analyses for this model were originally developed
     by Ning et. al as part of a larger effort to develop a cost based design optimization
     for wind turbines[CITATION NEEDED].
 
@@ -487,12 +488,12 @@
         \label{eqn:wt_formulation}
     \end{align}
 
-    There are ZZ disciplines involved in the modeling, as seen in Fig. \ref{fig:xdsm_wt}. 
-    There are AA design variables, 1 objective, and BB constraints. Since there are 
-    less design variables then quantities of interest, the problem was solved with 
-    forward derivatives. In addition, the relatively small size of the design space 
-    enabled the use of both analytic and finite difference gradients. 
-    
+    There are ZZ disciplines involved in the modeling, as seen in Fig. \ref{fig:xdsm_wt}.
+    There are AA design variables, 1 objective, and BB constraints. Since there are
+    less design variables then quantities of interest, the problem was solved with
+    forward derivatives. In addition, the relatively small size of the design space
+    enabled the use of both analytic and finite difference gradients.
+
 
     \begin{figure}[!htbp]
         \centering
@@ -504,15 +505,15 @@
 
     The aerodynamics discipline is modeled with a blade element
     momentum (BEM) tool, CCBlade\cite{NING:BEM}. The use of CCBlade is significant because
-    it implements a version BEM specifically tailored to optimization. 
-    Similar to the small satellite design problem, many of the disciplines were further 
-    sub-divided into more than one component for implementation. However, in the 
-    satellite problem, all components were left at the same level in the model. For this 
-    problem the components representing the XXX and YYY disciplines were 
-    grouped into sub-assemblies. Figure \ref{fig:wt_top_depgraph} shows the 
-    top level dependency graph for the problem. The XXX discipline assembly dependency 
-    graph is in Fig. \ref{fig:wt_sub_depgraph} shows the internal configuration 
-    of components, as well as their links to the top level model.  
+    it implements a version BEM specifically tailored to optimization.
+    Similar to the small satellite design problem, many of the disciplines were further
+    sub-divided into more than one component for implementation. However, in the
+    satellite problem, all components were left at the same level in the model. For this
+    problem the components representing the XXX and YYY disciplines were
+    grouped into sub-assemblies. Figure \ref{fig:wt_top_depgraph} shows the
+    top level dependency graph for the problem. The XXX discipline assembly dependency
+    graph is in Fig. \ref{fig:wt_sub_depgraph} shows the internal configuration
+    of components, as well as their links to the top level model.
 
     \begin{figure}[!htbp]
         \centering
@@ -529,16 +530,16 @@
         \caption{Sub-assembly XXX dependency graph}
         \label{fig:wt_sub_depgraph}
     \end{figure}
-    
 
-    This problem has one additional interesting characteristic with regards to its 
-    problem formulation. It has a number of data connections throughout the dependency 
-    graph which are never relevant to the derivatives calculations. These non-relevant 
+
+    This problem has one additional interesting characteristic with regards to its
+    problem formulation. It has a number of data connections throughout the dependency
+    graph which are never relevant to the derivatives calculations. These non-relevant
     variables are used for various settings and initialization values throughout the
-    model. The interesting effect of these variables it that they necessitate the 
-    graph based approach to identifying irrelevant variables. Without that, these 
-    variables would be included in the linear systems for derivatives causing erroneous 
-    results. 
+    model. The interesting effect of these variables it that they necessitate the
+    graph based approach to identifying irrelevant variables. Without that, these
+    variables would be included in the linear systems for derivatives causing erroneous
+    results.
 
 
     \subsection{Results}
