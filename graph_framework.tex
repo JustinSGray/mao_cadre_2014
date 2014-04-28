@@ -228,7 +228,15 @@
         the adjoint method will require far fewer solves of the linear system. If you have fewer design variables then
         objectives and constraints the forward mode is preferable.
 
-        OpenMDAO allows users to specify analytic derivatives of components by declaring one or more of the following three
+        In order to specify derivates for an OpenMDAO component, the component
+        must implement a list\_deriv\_vars method. This method specifies the
+        input variables and output variables that the provided derivatives are
+        taken with respect to, to prevent any ambiguity. list\_deriv\_vars returns
+        a tuple with two elements, a tuple of input variable names, and a
+        tuple of output variable names.
+        Once this method is written, OpenMDAO allows users to specify analytic
+        derivatives of components by
+        declaring one or more of the following three
         methods:
 
         \begin{itemize}
@@ -237,6 +245,20 @@
             \item apply\_derivT(input\_vector, result\_vector)
         \end{itemize}
 
+
+        The provideJ method is the simplest method to implement, and also the most flexible. The user simply gives the framework the
+        Jacobian and the order of the columns and rows in that Jacobian. With that information, OpenMDAO can automatically
+        implement either the forward or adjoint derivatives methods. This flexibility comes with some computational cost however.
+        Although at the overall system level the Jacobian is provided as a linear operator, that linear operator is built out
+        of the set of component Jacobians which are all stored in memory. If your component has relatively few inputs and outputs
+        (on the order of 10's), then this cost is not likely to be significant. However, as the scale of the components grows,
+        the other two functions will offer better efficiency. Listing \ref{code:component_with_jacobian} shows an example
+        of an OpenMDAO component with user-specified derivatives, using the provideJ method. This component has two input variables $x$ and
+        $y$ and two output variables $f$ and $g$, where
+
+        $$ f\left(x, y\right) = x^2 + \sin(y)$$
+        and
+        $$ g\left(x, y\right) = x^3 .$$
 
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[label=code:component_with_jacobian,caption=Example OpenMDAO
@@ -275,6 +297,16 @@ class ExampleComp(Component):
 \end{lstlisting}
 \end{minipage}
 
+
+        The two methods apply\_deriv and apply\_derivT implement Jacobian linear operators at
+        the component level for the direct and adjoint methods respectively. So the user must provide both if they
+        want the component to be able to operate in both forward and adjoint modes. If the user prefers one method over
+        the other, they can choose to only implement one or the other. When both methods are present OpenMDAO will
+        attempt to make an intelligent choice about whether to use the forward or adjoint method based on the number
+        of variables vs objectives and constraints. Both the apply\_deriv and apply\_derivT methods do require that a provideJ method
+        has also been implemented, though it does not have to actually return a Jacobian matrix.
+        Listing \ref{code:component_with_apply_deriv} provides an example of using the apply\_deriv and apply\_derivT methods,
+        using the same component shown in Listing \ref{code:component_with_jacobian}.
 
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[label=code:component_with_apply_deriv,caption=Example OpenMDAO
@@ -316,27 +348,6 @@ class ExampleComp(Component):
 
 \end{lstlisting}
 \end{minipage}
-
-        The provideJ method is the simplest method to implement, and also the most flexible. The user simply gives the framework the
-        Jacobian and the order of the columns and rows in that Jacobian. With that information, OpenMDAO can automatically
-        implement either the forward or adjoint derivatives methods. This flexibility comes with some computational cost however.
-        Although at the overall system level the Jacobian is provided as a linear operator, that linear operator is built out
-        of the set of component Jacobians which are all stored in memory. If your component has relatively few inputs and outputs
-        (on the order of 10's), then this cost is not likely to be significant. However, as the scale of the components grows,
-        the other two functions will offer better efficiency. Listing \ref{code:component_with_jacobian} shows an example
-        of an OpenMDAO component with user-specified derivatives, using the provideJ method. This component has two input variables $x$ and
-        $y$, and two output variables $f$ and $g$.
-
-        The two methods apply\_deriv and apply\_derivT implement Jacobian linear operators at
-        the component level for the direct and adjoint methods respectively. So the user must provide both if they
-        want the component to be able to operate in both forward and adjoint modes. If the user prefers one method over
-        the other, they can choose to only implement one or the other. When both methods are present OpenMDAO will
-        attempt to make an intelligent choice about whether to use the forward or adjoint method based on the number
-        of variables vs objectives and constraints. Both the apply\_deriv and apply\_derivT methods do require that a provideJ method
-        has also been implemented, though it does not have to actually return a Jacobian matrix.
-        Listing \ref{code:component_with_apply_deriv} provides an example of using the apply\_deriv and apply\_derivT methods,
-        using the same component shown in Listing \ref{code:component_with_jacobian}.
-
 
     \section{Small Satellite Design Problem (Tristan)}
 
