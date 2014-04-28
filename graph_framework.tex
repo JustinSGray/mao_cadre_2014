@@ -49,6 +49,7 @@
 \usepackage{listings}
 \usepackage[section]{placeins}
 
+\lstset{frame=single}
 \newcommand{\txt}{\textrm}
 
 
@@ -236,10 +237,14 @@
             \item apply\_derivT(input\_vector, result\_vector)
         \end{itemize}
 
+
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[label=code:component_with_jacobian,caption=Example OpenMDAO
 component with user-specified Jacobian,
-language=Python, showstringspaces=false]
+language=Python, basicstyle=\ttfamily\scriptsize,
+           keywordstyle=\color{blue}\ttfamily,
+           stringstyle=\color{red}\ttfamily, showstringspaces=false,
+           commentstyle=\color{olive}\ttfamily]
 
 from openmdao.main.api import Component
 from openmdao.main.datatypes.api import Float
@@ -274,7 +279,10 @@ class ExampleComp(Component):
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[label=code:component_with_apply_deriv,caption=Example OpenMDAO
 component with apply\_deriv and apply\_derivT methods implemented,
-language=Python, showstringspaces=false]
+language=Python, basicstyle=\ttfamily\scriptsize,
+           keywordstyle=\color{blue}\ttfamily,
+           stringstyle=\color{red}\ttfamily, showstringspaces=false,
+           commentstyle=\color{olive}\ttfamily]
 
 class ExampleComp(Component):
 
@@ -297,6 +305,11 @@ class ExampleComp(Component):
         result["f"] += cos(self.y)*arg["y"]
         result["g"] += 3*self.x**2 * arg["x"]
 
+    def apply_derivT(self, arg, result):
+        result["x"] += 2*self.x*arg["f"]
+        result["x"] += 3*self.x**2 * arg["g"]
+        result["y"] += cos(self.y)*arg["f"]
+
     def execute(self):
         self.f = self.x**2 + sin(self.y)
         self.g = self.x**3
@@ -310,15 +323,19 @@ class ExampleComp(Component):
         Although at the overall system level the Jacobian is provided as a linear operator, that linear operator is built out
         of the set of component Jacobians which are all stored in memory. If your component has relatively few inputs and outputs
         (on the order of 10's), then this cost is not likely to be significant. However, as the scale of the components grows,
-        the other two functions will offer better efficiency.
+        the other two functions will offer better efficiency. Listing \ref{code:component_with_jacobian} shows an example
+        of an OpenMDAO component with user-specified derivatives, using the provideJ method. This component has two input variables $x$ and
+        $y$, and two output variables $f$ and $g$.
 
         The two methods apply\_deriv and apply\_derivT implement Jacobian linear operators at
         the component level for the direct and adjoint methods respectively. So the user must provide both if they
         want the component to be able to operate in both forward and adjoint modes. If the user prefers one method over
         the other, they can choose to only implement one or the other. When both methods are present OpenMDAO will
         attempt to make an intelligent choice about whether to use the forward or adjoint method based on the number
-        of variables vs objectives and constraints.
-
+        of variables vs objectives and constraints. Both the apply\_deriv and apply\_derivT methods do require that a provideJ method
+        has also been implemented, though it does not have to actually return a Jacobian matrix.
+        Listing \ref{code:component_with_apply_deriv} provides an example of using the apply\_deriv and apply\_derivT methods,
+        using the same component shown in Listing \ref{code:component_with_jacobian}.
 
 
     \section{Small Satellite Design Problem (Tristan)}
