@@ -118,7 +118,7 @@
     Short summary of the unified derivatives method and it's implications for forward or adjoint derivatives.
 
 
-  \section{Dependency Graph (Ken/Justin)}
+  \section{Dependency Graph (Ken/Justin)}\label{section:depgraph}
 
     In Moore's original work on computing derivatives from a dependency graph, he employed
     a discipline based dependency graph, with a node for each discipline and edges describing
@@ -555,7 +555,33 @@ class ExampleComp(Component):
         \end{figure}
 
         \subsection{Performance Results}
-            Compare size of linear system with and without sparsity. Relative speeds.
+
+            Reduction of the derivative dependency graph, as discussed in
+            Section \ref{section:depgraph}, is key for efficient execution
+            of the CADRE problem; as there are a number of components which
+            perform essential computations for the problem but do not have any influence
+            on the fundamental design problem directly. For example, consider the orbital
+            dynamics component, which computes the position and velocity of the satellite over
+            time for each of the 6 design points. This component is not
+            influenced by any of the design variables listed in Table \ref{eqn:cadre_formulation}. Therefore,
+            there is clearly no need for this component to be executed more than once
+            per design point, and the framework should exclude it from the
+            derivatives dependency graph. However if the problem was
+            reformulated to include, for example, selected orbital insertion parameters as
+            design variables, then this would not be the case and the orbital
+            dynamics component would not be excluded.
+
+            Overall, without the reduction of the derivative graph the CADRE problem
+            has 39 components with 64 edges. The total number of elements in
+            the corresponding linear system is 358305. Average execution time
+            for a single case is [time 1] seconds.
+
+            In contrast, when the derivative graph is automatically reduced based on
+            relevance, the graph is reduced to 29 components with 45 edges.
+            The corresponding linear system has 293792 (an 18\% reduction in
+            problem size). Average execution time for a single case was
+            [time 2] seconds, a \% [percent reduction] reduction over the
+            non-reduced problem.
 
 
   \section{Wind Turbine Design Problem (Justin/Andrew)}
