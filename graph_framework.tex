@@ -265,12 +265,12 @@ class ExampleComp(Component):
         return (('x', 'y',), ('f', 'g'))
 
     def provideJ(self):
-        return array([[2*self.x, cos(self.y)],
-                       [3*self.x**2, 0.0]])
+        return array([[2 * self.x, cos(self.y)],
+                      [3 * self.x ** 2, 0.0]])
 
     def execute(self):
-        self.f = self.x**2 + sin(self.y)
-        self.g = self.x**3
+        self.f = self.x ** 2 + sin(self.y)
+        self.g = self.x ** 3
 
 \end{lstlisting}
 \end{minipage}
@@ -301,18 +301,18 @@ class ExampleComp(Component):
         pass
 
     def apply_deriv(self, arg, result):
-        result["f"] += 2*self.x*arg["x"]
-        result["f"] += cos(self.y)*arg["y"]
-        result["g"] += 3*self.x**2 * arg["x"]
+        result["f"] += 2 * self.x * arg["x"]
+        result["f"] += cos(self.y) * arg["y"]
+        result["g"] += 3 * self.x ** 2 * arg["x"]
 
     def apply_derivT(self, arg, result):
-        result["x"] += 2*self.x*arg["f"]
-        result["x"] += 3*self.x**2 * arg["g"]
-        result["y"] += cos(self.y)*arg["f"]
+        result["x"] += 2 * self.x * arg["f"]
+        result["x"] += 3 * self.x ** 2 * arg["g"]
+        result["y"] += cos(self.y) * arg["f"]
 
     def execute(self):
-        self.f = self.x**2 + sin(self.y)
-        self.g = self.x**3
+        self.f = self.x ** 2 + sin(self.y)
+        self.g = self.x ** 3
 
 \end{lstlisting}
 \end{minipage}
