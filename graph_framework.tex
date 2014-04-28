@@ -236,6 +236,74 @@
             \item apply\_derivT(input\_vector, result\_vector)
         \end{itemize}
 
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[label=code:component_with_jacobian,caption=Example OpenMDAO
+component with user-specified Jacobian,
+language=Python, showstringspaces=false]
+
+from openmdao.main.api import Component
+from openmdao.main.datatypes.api import Float
+from math import sin, cos
+from numpy import array
+
+class ExampleComp(Component):
+
+    # Inputs
+    x = Float(0., iotype="in")
+    y = Float(0., iotype="in")
+
+    # Outputs
+    f = Float(0., iotype="out")
+    g = Float(0., iotype="out")
+
+    def list_deriv_vars(self):
+        return (('x', 'y',), ('f', 'g'))
+
+    def provideJ(self):
+        return array([[2*self.x, cos(self.y)],
+                       [3*self.x**2, 0.0]])
+
+    def execute(self):
+        self.f = self.x**2 + sin(self.y)
+        self.g = self.x**3
+
+\end{lstlisting}
+\end{minipage}
+
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[label=code:component_with_apply_deriv,caption=Example OpenMDAO
+component with apply\_deriv and apply\_derivT methods implemented,
+language=Python, showstringspaces=false]
+
+class ExampleComp(Component):
+
+    # Inputs
+    x = Float(0., iotype="in")
+    y = Float(0., iotype="in")
+
+    # Outputs
+    f = Float(0., iotype="out")
+    g = Float(0., iotype="out")
+
+    def list_deriv_vars(self):
+        return (('x', 'y',), ('f', 'g'))
+
+    def provideJ(self):
+        pass
+
+    def apply_deriv(self, arg, result):
+        result["f"] += 2*self.x*arg["x"]
+        result["f"] += cos(self.y)*arg["y"]
+        result["g"] += 3*self.x**2 * arg["x"]
+
+    def execute(self):
+        self.f = self.x**2 + sin(self.y)
+        self.g = self.x**3
+
+\end{lstlisting}
+\end{minipage}
+
         The provideJ method is the simplest method to implement, and also the most flexible. The user simply gives the framework the
         Jacobian and the order of the columns and rows in that Jacobian. With that information, OpenMDAO can automatically
         implement either the forward or adjoint derivatives methods. This flexibility comes with some computational cost however.
