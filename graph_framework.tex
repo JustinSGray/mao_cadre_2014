@@ -595,32 +595,54 @@ class ExampleComp(Component):
 
   \section{Wind Turbine Design Problem (Justin/Andrew)}
 
-    The goal of this design problem was to optimize a horizontal axis wind turbine
-    to maximize annual energy production. The problem considers the design of
-    the the rotor blades from an aero-structural perspective as well as the structural requirements of the tower. The analyses for this model were originally developed
-    by Ning et. al as part of a larger effort to develop a cost based design optimization
-    for wind turbines[CITATION NEEDED].
+    The goal of this design problem was to optimize a horizontal axis wind turbine to minimize the cost of energy. The problem considers the design of the rotor blades and tower from an aero-structural perspective as well as the structural requirements of the hub and nacelle.  Cost models for the turbine and wind plant are included to assess trade-offs in energy capture, capital costs and operational costs.  The analyses for this model are part of the Wind-Plant Integrated Systems Engineering \& Design Model (WISDEM) developed at NREL as part of a larger effort to develop a physics and cost based design optimization framework for wind turbines  \cite{Dykes2014a, ning2014, ning2014}.
 
-    The problem formulation is given by: [Insert real problem formulation here]
+    A typical problem formulation is given in Tab.~\ref{tab:coe_formulation}.  Bound constraint are chosen to be large enough to not be active, except for those that must be restricted because of manufacturing or transportation reasons.  For simplicity, safety factors are not included in the constraint table.
 
-    \begin{align}
-        \\\txt{max.} &\ \ \sum_{i=1}^6 D_i \notag
-        \\\txt{w.r.t.} & \ \ 0 \le I_{setpt} \le 4 \notag
-        \\     & \ \ 0 \le P_{comm} \le 25 \notag
-        \\     & \ \ 0 \le cellInstd \le 1 \notag
-        \\     & \ \ 0 \le finAngle \le \pi/2 \notag
-        \\     & \ \ 0 \le antAngle \le \pi \notag
-        \\     & \ \ 0.2 \le iSOC \le 1 \notag
-        \\\txt{s.t.} & \ \ I_{bat} - 5 \le 0 \notag
-        \\     & \ \ -10 - I_{bat} \le 0 \notag
-        \\     & \ \ 0.2 - SOC \le 0 \notag
-        \\     & \ \ SOC - 1 \le 0 \notag
-        \\     & \ \ fSOC - iSOC = 0 \notag
-        \label{eqn:wt_formulation}
-    \end{align}
 
-    There are ZZ disciplines involved in the modeling, as seen in Fig. \ref{fig:xdsm_wt}.
-    There are AA design variables, 1 objective, and BB constraints. Since there are
+    \begin{table}
+        \centering
+        \begin{tabular}{r l l l}
+            \hline
+            & Variable/function & Description & Quantity \\
+            \hline
+            minimize            & $COE$ & Cost of energy \\
+            \\
+            with respect to & $0.4 \le c \le 20$ & Chord distribution & $5$ \\
+                                    & $-10 \le \theta \le 30$ & Twist distribution & $4$ \\
+                                    & $0.005 \le t_{sc} \le 0.2$ & Spar-cap thickness distribution & $5$ \\
+                                    & $0.005 \le t_{te} \le 0.2$ & Trailing-edge panel distribution & $5$ \\
+                                    & $3 \le \lambda \le 14$ & Tip-speed ratio in Region 2 & $1$ \\
+                                    & $10 \le \lambda \le 80$ & Max Tip Speed & $1$ \\
+                                    & $40 \le L \le 100$ & Blade length & $1$ \\
+                                    & $3.87 \le d \le 20$ & Tower diameter & $3$ \\
+                                    & $0.005 \le t \le 0.2$ & Tower wall thickness & $3$ \\
+                                    & $0.25 \le z_{waist} \le 0.75$ & Tower waist location & $1$ \\
+                                    & $50 \le H \le 200$ & Tower height & $1$ \\
+                                    & & Total & $30$ \\
+
+            \\
+            subject to          & $\delta_{tip} \le \delta_{max}$ & Blade tower strike & $1$ \\
+                                    & $\delta_{ground} \ge \delta_{min}$ & Blade ground clearance & $1$ \\
+                                    & $\epsilon \le \epsilon_{ult}$ & Ultimate strain in blades & $24$ \\
+                                    & $\epsilon \le \epsilon_{cr}$ & Panel buckling in blades & $14$ \\
+                                    & $damage \le 1$ & Fatigue damage in blades & $10$ \\
+                                    & $\sigma \le \sigma_{ult}$ & Ultimate stress in tower & $14$ \\
+                                    & $\sigma \le \sigma_{shell}$ & Shell buckling in tower & $14$ \\
+                                    & $\sigma \le \sigma_{global}$ & Global buckling in tower & $14$ \\
+                                    & $damage \le 1$ & Fatigue damage in tower & $9$ \\
+                                    & $f \ge \Omega_{rotor}$ & Tower resonance avoidance & $1$ \\
+                                    & $d/t \ge 120$ & Weldability & $1$ \\
+                                    & $d_{top}/d_{base} > 0.4$ & Manufacturability & $1$ \\
+                                    & & Total & $104$ \\
+            \hline
+        \end{tabular}
+        \caption{small satellite design problem formulation}
+        \label{tab:coe_formulation}
+    \end{table}
+
+    There are ZZ disciplines involved in the modeling, as seen in Fig.~\ref{fig:xdsm_wt}.
+    There are 30 design variables, 1 objective, and 104 constraints. Since there are
     less design variables then quantities of interest, the problem was solved with
     forward derivatives. In addition, the relatively small size of the design space
     enabled the use of both analytic and finite difference gradients.
