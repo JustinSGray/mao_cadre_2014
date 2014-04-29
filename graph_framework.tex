@@ -121,16 +121,18 @@
   \section{Dependency Graph (Ken/Justin)}
 
     In Moore's original work on computing derivatives from a dependency graph, he employed
-    a discipline based dependency graph, with a node for each discipline and edges describing
+    a discipline-based dependency graph, with a node for each discipline and edges describing
     dependency between the nodes. A path finding algorithm, from the NetworkX library\cite{hagberg-2008-exploring},
     computed the relevant set of disciplines for a given derivative. Although this took advantage of sparsity at
     one level, by excluding any disciplines that don't directly contribute, it can't handle a second level of sparsity
     within the relevant disciplines. Even if a given discipline is relevant, some of its variables may still not be
-    because they don't directly affect the quantities of interest. Pate et. al. proposed an alternative dependency graph
+    because they don't directly affect the quantities of interest, so the variable connectivity information needed to be 
+    obtained from outside the graph. Pate et. al. proposed an alternative dependency graph
     structure that addressed this problem\cite{graph_problem2013}. Each discipline and all its inputs and outputs are
     represented by nodes with directed edges between them describing their dependencies on each other.
     Figure \ref{fig:sellar_graph} shows a sample graph for the Sellar Problem \cite{AIAA:sellar}
-    given in eqn. \ref{eqn:sellar_formulation}.
+    given in eqn. \ref{eqn:sellar_formulation}. This graph is essential for determining the set of relevant edges 
+    for the gradient computation.
 
     \begin{align}
         \txt{given} & \ \ y_1 = D_1(x_1,y_2,z_1,z_2) \notag
@@ -210,14 +212,18 @@
     \subsection{Cycle Detection and Usage}
         Pate et. al indicate that within a dependency graph, the presence of cycles indicates coupling between
         the components in the cycle \cite{graph_problem2013}. A cycle can consist of two or more components, and
-        one component may be part of more than one cycle.
+        one component may be part of more than one cycle. In addition, a cycle can be induced by an explcit connection 
+        where data is passed directly from an output to an input, or by an implicit connection, where some input needs to
+        be varied in order to drive some output to zero.
 
         In formal terms, cycles exist in a graph when a group of nodes are strongly connected. The NetworkX package
         provides an implementation of Tarjans algorithm for finding sets of strongly connected
         components\cite{tarjan1972depth,nuutila1994finding}. Once found, the presence of these cycles
         have an impact on how any given model is solved. Firstly during normal execution, these cycles
-        need to be converged with a numerical solver such as Gauss-Seidel or Newton based.
-        In addition these cycles need to be accounted for when solving for the gradients
+        need to be converged with a numerical solver such as Gauss-Seidel or Newton-based solver.
+        In addition, these cycles need to be accounted for when solving for the gradients. This doesn't
+        pose any particular challenge for the gradient solution, though the Jacobian of a system with cycles is no longer
+        a triangular matrix.
 
 
     \section{API for Specifying Discipline Derivatives (Tristan)}
