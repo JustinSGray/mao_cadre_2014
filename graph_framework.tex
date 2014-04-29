@@ -222,43 +222,36 @@
 
     \section{API for Specifying Discipline Derivatives (Tristan)}
 
-        OpenMDAO supports calculating derivatives in two ways: direct and adjoint. The direct method performs
-        one linear solve for each design variable. The adjoint method performs one linear solve per each objective
-        and constraints. Hence, if you have more design variables than quantities of interest (as if often the case),
-        the adjoint method will require far fewer solves of the linear system. If you have fewer design variables then
-        objectives and constraints the forward mode is preferable.
+        All of the discussion up to this point has dealt with disciplines as if they are black boxes 
+        which are assumed to provide analytic derivatives of their outputs with respect to their inputs 
+        to the framework. This section describes the api for components to declare and provide 
+        said derivatives. The api is broken up into two parts, one which is mandatory for all components 
+        that declare derivatives and a second which is optional for components that wish to take full 
+        advantage of the graph-based sparse approach. 
 
-        In order to specify derivates for an OpenMDAO component, the component
-        must implement a list\_deriv\_vars method. This method specifies the
-        input variables and output variables that the provided derivatives are
-        taken with respect to, to prevent any ambiguity. list\_deriv\_vars returns
-        a tuple with two elements, a tuple of input variable names, and a
-        tuple of output variable names.
-        Once this method is written, OpenMDAO allows users to specify analytic
-        derivatives of components by
-        declaring one or more of the following three
-        methods:
+        \subsection{Mandatory API Methods}
 
-        \begin{itemize}
-            \item provideJ(ins, outs, Jacobian)
-            \item apply\_deriv(input\_vector, result\_vector)
-            \item apply\_derivT(input\_vector, result\_vector)
-        \end{itemize}
+        There are 2 mandatory methods that all components supporting derivatives must provide. 
+        The first is \texttt{list\_deriv\_vars()}. This method specifies the
+        input variables and output variables that make up the columns and rows of its Jacobian respectively.  
+        \texttt{list\_deriv\_vars()} returns a 2-tuple of inputs and outputs that have derivatives. 
+        A component is allowed to declare derivatives support for an arbitrary sub-set of all its variables. 
 
+        The second method is \texttt{provideJ()}. This method serves two purposes. First, it provides the 
+        opportunity to perform any one time work needed for linerization around the current point. Secondly, 
+        the method can optionally return the actual Jacobian, in the form of a $n \times m$ vector where $n$ is the 
+        number of outputs and $m$ is the number of inputs. The ordering of the rows and columns of the Jacobian 
+        must match the order of the variables returned for \texttt{list\_deriv\_vars()}. When a Jacobian is
+        returned from \texttt{provideJ()}, OpenMDAO will cache it and use it for all derivative computations 
+        around the current point for both forward and adjoint derivatives. This makes the \texttt{provideJ()}
+        API the most strait forward and easiest to use in many cases. Listing \ref{code:component_with_jacobian} shows 
+        an example of an OpenMDAO component with user-specified derivatives, using the provideJ method. 
+        This component has two input variables $x$ and $y$ and two output variables $f$ and $g$, where
 
-        The provideJ method is the simplest method to implement, and also the most flexible. The user simply gives the framework the
-        Jacobian and the order of the columns and rows in that Jacobian. With that information, OpenMDAO can automatically
-        implement either the forward or adjoint derivatives methods. This flexibility comes with some computational cost however.
-        Although at the overall system level the Jacobian is provided as a linear operator, that linear operator is built out
-        of the set of component Jacobians which are all stored in memory. If your component has relatively few inputs and outputs
-        (on the order of 10's), then this cost is not likely to be significant. However, as the scale of the components grows,
-        the other two functions will offer better efficiency. Listing \ref{code:component_with_jacobian} shows an example
-        of an OpenMDAO component with user-specified derivatives, using the provideJ method. This component has two input variables $x$ and
-        $y$ and two output variables $f$ and $g$, where
-
-        $$ f\left(x, y\right) = x^2 + \sin(y)$$
-        and
-        $$ g\left(x, y\right) = x^3 .$$
+        \begin{align}
+            f\left(x, y\right) =&\  x^2 + \sin(y) \\ \notag
+            g\left(x, y\right) =&\  x^3
+        \end{align}
 
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[label=code:component_with_jacobian,caption=Example OpenMDAO
@@ -297,21 +290,34 @@ class ExampleComp(Component):
 \end{lstlisting}
 \end{minipage}
 
+        Although the \texttt{provideJ()} method is easy to implement, it does have a few minor downsides. Firstly, 
+        it requires that the whole Jacobian be assembled in memory. In most cases, with 10's or even 100's of variables
+        this is reasonable but if the Jacobian has a sparse structure it may still be wasteful to allocate memory for a
+        full matrix. Furthermore, for situations like CFD, where there are millions of variables spread out 
+        across many CPU's on an HPC cluster, assembling the full Jacobian is not feasible. Lastly, depending on how 
+        your problem is configured, it's possible that not all of the variables will be needed for a given problem. With 
+        \texttt{provideJ()} you still need to compute and provide the full Jacobian though some of it will be irrelevant. 
+        In these situations, the \texttt{provideJ()} method should return nothing, and instead the 
+        additional optional API methods should be implemented for improved efficiency. 
 
-        The two methods apply\_deriv and apply\_derivT implement Jacobian linear operators at
-        the component level for the direct and adjoint methods respectively. So the user must provide both if they
-        want the component to be able to operate in both forward and adjoint modes. If the user prefers one method over
-        the other, they can choose to only implement one or the other. When both methods are present OpenMDAO will
-        attempt to make an intelligent choice about whether to use the forward or adjoint method based on the number
-        of variables vs objectives and constraints. Both the apply\_deriv and apply\_derivT methods do require that a provideJ method
-        has also been implemented, though it does not have to actually return a Jacobian matrix.
-        Listing \ref{code:component_with_apply_deriv} provides an example of using the apply\_deriv and apply\_derivT methods,
-        using the same component shown in Listing \ref{code:component_with_jacobian}.
+    \subsection{Optional API Methods}
+
+        In order to overcome some of the downsides to construction of the full Jacobian, the components can provide 
+        a linear operator that computes the effect of multiplying the Jacobian with a given vector. This provides 
+        the freedom a lot more freedom in how derivatives are implemented. It also enables the computing of only
+        relevant quantities. The only significant downside is a small amount of added implementation complexity. 
+        Two methods, \texttt{apply\_deriv(arg, result)} and \texttt{apply\_derivT(arg, result)}, must be implemented 
+        for forward and adjoint derivatives respectively. In each case, \texttt{arg} and \texttt{result} 
+        are dictionaries with relevant inputs and outputs variable names as keys. 
+        If you know you will be using only forward or adjoint, you can implement only the 
+        necessary method. Listing \ref{code:component_with_apply_deriv} provides an example of 
+        using the \texttt{apply\_deriv} and \texttt{apply\_derivT} methods, using the same component shown above in
+        Listing \ref{code:component_with_jacobian}.
 
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[label=code:component_with_apply_deriv,caption=Example OpenMDAO
 component with apply\_deriv and apply\_derivT methods implemented,
-language=Python, basicstyle=\ttfamily\scriptsize,
+language=Python , basicstyle=\ttfamily\scriptsize,
            keywordstyle=\color{blue}\ttfamily,
            stringstyle=\color{red}\ttfamily, showstringspaces=false,
            commentstyle=\color{olive}\ttfamily]
@@ -333,14 +339,19 @@ class ExampleComp(Component):
         pass
 
     def apply_deriv(self, arg, result):
-        result["f"] += 2 * self.x * arg["x"]
-        result["f"] += cos(self.y) * arg["y"]
-        result["g"] += 3 * self.x ** 2 * arg["x"]
+        if "x" in arg: 
+            result["f"] += 2 * self.x * arg["x"]
+            result["g"] += 3 * self.x ** 2 * arg["x"]
+        if "y" in arg: 
+            result["f"] += cos(self.y) * arg["y"]
+        
 
     def apply_derivT(self, arg, result):
-        result["x"] += 2 * self.x * arg["f"]
-        result["x"] += 3 * self.x ** 2 * arg["g"]
-        result["y"] += cos(self.y) * arg["f"]
+        if "f" in arg: 
+            result["x"] += 2 * self.x * arg["f"]
+            result["y"] += cos(self.y) * arg["f"]
+        if "g" in arg: 
+            result["x"] += 3 * self.x ** 2 * arg["g"]
 
     def execute(self):
         self.f = self.x ** 2 + sin(self.y)
@@ -348,6 +359,25 @@ class ExampleComp(Component):
 
 \end{lstlisting}
 \end{minipage}
+
+    The if conditions in the sample implementation from Listing \ref{code:component_with_apply_deriv} provide the 
+    mechanism for taking full advantage of sparsity. The usefulness of this feature can be readily demonstrated with 
+    a notional optimization using the Multidisciplinary Feasible architecture\cite{martins:arch:survey}.
+
+    \begin{figure}[htbp]
+        \centering
+        [INSERT XDSM HERE]
+        %\includegraphics[width=0.95\textwidth]{}
+        \caption{caption}
+        \label{fig:MDF:XDSM}
+    \end{figure}
+
+    In fig. \ref{fig:MDF:XDSM}, the optimizer varies the design variable $A.x$, a length 10,000 vector. 
+    The MDA converges variables $y_1$ and $y_2$ from disciplines $A$ and $B$. Applying a 
+    Newton-based method requires $\frac{\partial A.y_1}{\partial A.y_2}$ and $\frac{\partial B.y_2}{\partial B.y_1}$
+    to converge, but $\frac{\partial A.y_1}{\partial A.x}$ is not. By using the linear operator derivatives method, 
+    the cost of multiplying by $\frac{\partial A.y_1}{\partial A.x}$ can be avoided while converging the MDA and only 
+    computed as part of the outer optimization loop. 
 
     \section{Small Satellite Design Problem (Tristan)}
 
