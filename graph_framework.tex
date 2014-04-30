@@ -394,7 +394,7 @@ class ExampleComp(Component):
         \label{fig:MDF:XDSM}
     \end{figure}
 
-    In fig. \ref{fig:MDF:XDSM}, the optimizer varies the design variable $A.x$, a length 10,000 vector.
+    In fig. \ref{fig:MDF:XDSM}, the optimizer varies the design variable $A.x$, a large vector.
     The MDA converges variables $y_1$ and $y_2$ from disciplines $A$ and $B$. Applying a
     Newton-based method requires $\frac{\partial A.y_1}{\partial A.y_2}$ and $\frac{\partial B.y_2}{\partial B.y_1}$
     to converge, but $\frac{\partial A.y_1}{\partial A.x}$ is not. By using the linear operator derivatives method,
@@ -454,7 +454,7 @@ class ExampleComp(Component):
 
     \begin{figure}[!htbp]
         \centering
-        \includegraphics[width=0.95\textwidth]{images/cadre_xdsm}
+        \includegraphics[width=0.95\textwidth]{xdsm/cadre_xdsm}
         \caption{XDSM diagram showing the structure of the small satellite design problem}
         \label{fig:cadre_xdsm}
     \end{figure}
