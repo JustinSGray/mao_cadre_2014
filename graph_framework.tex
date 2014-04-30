@@ -126,7 +126,7 @@
     Short summary of the unified derivatives method and it's implications for forward or adjoint derivatives.
 
 
-  \section{Dependency Graph (Ken/Justin)}
+  \section{Dependency Graph (Ken/Justin)}\label{section:depgraph}
 
     In Moore's original work on computing derivatives from a dependency graph, he employed
     a discipline-based dependency graph, with a node for each discipline and edges describing
@@ -236,30 +236,30 @@
 
     \section{API for Specifying Discipline Derivatives (Tristan)}
 
-        All of the discussion up to this point has dealt with disciplines as if they are black boxes 
-        which are assumed to provide analytic derivatives of their outputs with respect to their inputs 
-        to the framework. This section describes the api for components to declare and provide 
-        said derivatives. The api is broken up into two parts, one which is mandatory for all components 
-        that declare derivatives and a second which is optional for components that wish to take full 
-        advantage of the graph-based sparse approach. 
+        All of the discussion up to this point has dealt with disciplines as if they are black boxes
+        which are assumed to provide analytic derivatives of their outputs with respect to their inputs
+        to the framework. This section describes the api for components to declare and provide
+        said derivatives. The api is broken up into two parts, one which is mandatory for all components
+        that declare derivatives and a second which is optional for components that wish to take full
+        advantage of the graph-based sparse approach.
 
         \subsection{Mandatory API Methods}
 
-        There are 2 mandatory methods that all components supporting derivatives must provide. 
+        There are 2 mandatory methods that all components supporting derivatives must provide.
         The first is \texttt{list\_deriv\_vars()}. This method specifies the
-        input variables and output variables that make up the columns and rows of its Jacobian respectively.  
-        \texttt{list\_deriv\_vars()} returns a 2-tuple of inputs and outputs that have derivatives. 
-        A component is allowed to declare derivatives support for an arbitrary sub-set of all its variables. 
+        input variables and output variables that make up the columns and rows of its Jacobian respectively.
+        \texttt{list\_deriv\_vars()} returns a 2-tuple of inputs and outputs that have derivatives.
+        A component is allowed to declare derivatives support for an arbitrary sub-set of all its variables.
 
-        The second method is \texttt{provideJ()}. This method serves two purposes. First, it provides the 
-        opportunity to perform any one time work needed for linerization around the current point. Secondly, 
-        the method can optionally return the actual Jacobian, in the form of a $n \times m$ vector where $n$ is the 
-        number of outputs and $m$ is the number of inputs. The ordering of the rows and columns of the Jacobian 
+        The second method is \texttt{provideJ()}. This method serves two purposes. First, it provides the
+        opportunity to perform any one time work needed for linerization around the current point. Secondly,
+        the method can optionally return the actual Jacobian, in the form of a $n \times m$ vector where $n$ is the
+        number of outputs and $m$ is the number of inputs. The ordering of the rows and columns of the Jacobian
         must match the order of the variables returned for \texttt{list\_deriv\_vars()}. When a Jacobian is
-        returned from \texttt{provideJ()}, OpenMDAO will cache it and use it for all derivative computations 
+        returned from \texttt{provideJ()}, OpenMDAO will cache it and use it for all derivative computations
         around the current point for both forward and adjoint derivatives. This makes the \texttt{provideJ()}
-        API the most strait forward and easiest to use in many cases. Listing \ref{code:component_with_jacobian} shows 
-        an example of an OpenMDAO component with user-specified derivatives, using the provideJ method. 
+        API the most strait forward and easiest to use in many cases. Listing \ref{code:component_with_jacobian} shows
+        an example of an OpenMDAO component with user-specified derivatives, using the provideJ method.
         This component has two input variables $x$ and $y$ and two output variables $f$ and $g$, where
 
         \begin{align}
@@ -304,27 +304,27 @@ class ExampleComp(Component):
 \end{lstlisting}
 \end{minipage}
 
-        Although the \texttt{provideJ()} method is easy to implement, it does have a few minor downsides. Firstly, 
+        Although the \texttt{provideJ()} method is easy to implement, it does have a few minor downsides. Firstly,
         it requires that the whole Jacobian be assembled in memory. In most cases, with 10's or even 100's of variables
         this is reasonable but if the Jacobian has a sparse structure it may still be wasteful to allocate memory for a
-        full matrix. Furthermore, for situations like CFD, where there are millions of variables spread out 
-        across many CPU's on an HPC cluster, assembling the full Jacobian is not feasible. Lastly, depending on how 
-        your problem is configured, it's possible that not all of the variables will be needed for a given problem. With 
-        \texttt{provideJ()} you still need to compute and provide the full Jacobian though some of it will be irrelevant. 
-        In these situations, the \texttt{provideJ()} method should return nothing, and instead the 
-        additional optional API methods should be implemented for improved efficiency. 
+        full matrix. Furthermore, for situations like CFD, where there are millions of variables spread out
+        across many CPU's on an HPC cluster, assembling the full Jacobian is not feasible. Lastly, depending on how
+        your problem is configured, it's possible that not all of the variables will be needed for a given problem. With
+        \texttt{provideJ()} you still need to compute and provide the full Jacobian though some of it will be irrelevant.
+        In these situations, the \texttt{provideJ()} method should return nothing, and instead the
+        additional optional API methods should be implemented for improved efficiency.
 
     \subsection{Optional API Methods}
 
-        In order to overcome some of the downsides to construction of the full Jacobian, the components can provide 
-        a linear operator that computes the effect of multiplying the Jacobian with a given vector. This provides 
+        In order to overcome some of the downsides to construction of the full Jacobian, the components can provide
+        a linear operator that computes the effect of multiplying the Jacobian with a given vector. This provides
         the freedom a lot more freedom in how derivatives are implemented. It also enables the computing of only
-        relevant quantities. The only significant downside is a small amount of added implementation complexity. 
-        Two methods, \texttt{apply\_deriv(arg, result)} and \texttt{apply\_derivT(arg, result)}, must be implemented 
-        for forward and adjoint derivatives respectively. In each case, \texttt{arg} and \texttt{result} 
-        are dictionaries with relevant inputs and outputs variable names as keys. 
-        If you know you will be using only forward or adjoint, you can implement only the 
-        necessary method. Listing \ref{code:component_with_apply_deriv} provides an example of 
+        relevant quantities. The only significant downside is a small amount of added implementation complexity.
+        Two methods, \texttt{apply\_deriv(arg, result)} and \texttt{apply\_derivT(arg, result)}, must be implemented
+        for forward and adjoint derivatives respectively. In each case, \texttt{arg} and \texttt{result}
+        are dictionaries with relevant inputs and outputs variable names as keys.
+        If you know you will be using only forward or adjoint, you can implement only the
+        necessary method. Listing \ref{code:component_with_apply_deriv} provides an example of
         using the \texttt{apply\_deriv} and \texttt{apply\_derivT} methods, using the same component shown above in
         Listing \ref{code:component_with_jacobian}.
 
@@ -353,18 +353,18 @@ class ExampleComp(Component):
         pass
 
     def apply_deriv(self, arg, result):
-        if "x" in arg: 
+        if "x" in arg:
             result["f"] += 2 * self.x * arg["x"]
             result["g"] += 3 * self.x ** 2 * arg["x"]
-        if "y" in arg: 
+        if "y" in arg:
             result["f"] += cos(self.y) * arg["y"]
-        
+
 
     def apply_derivT(self, arg, result):
-        if "f" in arg: 
+        if "f" in arg:
             result["x"] += 2 * self.x * arg["f"]
             result["y"] += cos(self.y) * arg["f"]
-        if "g" in arg: 
+        if "g" in arg:
             result["x"] += 3 * self.x ** 2 * arg["g"]
 
     def execute(self):
@@ -374,8 +374,8 @@ class ExampleComp(Component):
 \end{lstlisting}
 \end{minipage}
 
-    The if conditions in the sample implementation from Listing \ref{code:component_with_apply_deriv} provide the 
-    mechanism for taking full advantage of sparsity. The usefulness of this feature can be readily demonstrated with 
+    The if conditions in the sample implementation from Listing \ref{code:component_with_apply_deriv} provide the
+    mechanism for taking full advantage of sparsity. The usefulness of this feature can be readily demonstrated with
     a notional optimization using the Multidisciplinary Feasible architecture\cite{martins:arch:survey}.
 
     \begin{figure}[htbp]
@@ -386,12 +386,12 @@ class ExampleComp(Component):
         \label{fig:MDF:XDSM}
     \end{figure}
 
-    In fig. \ref{fig:MDF:XDSM}, the optimizer varies the design variable $A.x$, a length 10,000 vector. 
-    The MDA converges variables $y_1$ and $y_2$ from disciplines $A$ and $B$. Applying a 
+    In fig. \ref{fig:MDF:XDSM}, the optimizer varies the design variable $A.x$, a length 10,000 vector.
+    The MDA converges variables $y_1$ and $y_2$ from disciplines $A$ and $B$. Applying a
     Newton-based method requires $\frac{\partial A.y_1}{\partial A.y_2}$ and $\frac{\partial B.y_2}{\partial B.y_1}$
-    to converge, but $\frac{\partial A.y_1}{\partial A.x}$ is not. By using the linear operator derivatives method, 
-    the cost of multiplying by $\frac{\partial A.y_1}{\partial A.x}$ can be avoided while converging the MDA and only 
-    computed as part of the outer optimization loop. 
+    to converge, but $\frac{\partial A.y_1}{\partial A.x}$ is not. By using the linear operator derivatives method,
+    the cost of multiplying by $\frac{\partial A.y_1}{\partial A.x}$ can be avoided while converging the MDA and only
+    computed as part of the outer optimization loop.
 
     \section{Small Satellite Design Problem (Tristan)}
 
@@ -599,7 +599,33 @@ class ExampleComp(Component):
         \end{figure}
 
         \subsection{Performance Results}
-            Compare size of linear system with and without sparsity. Relative speeds.
+
+            Reduction of the derivative dependency graph, as discussed in
+            Section \ref{section:depgraph}, is key for efficient execution
+            of the CADRE problem; as there are a number of components which
+            perform essential computations for the problem but do not have any influence
+            on the fundamental design problem directly. For example, consider the orbital
+            dynamics component, which computes the position and velocity of the satellite over
+            time for each of the 6 design points. This component is not
+            influenced by any of the design variables listed in Table \ref{eqn:cadre_formulation}. Therefore,
+            there is clearly no need for this component to be executed more than once
+            per design point, and the framework should exclude it from the
+            derivatives dependency graph. However if the problem was
+            reformulated to include, for example, selected orbital insertion parameters as
+            design variables, then this would not be the case and the orbital
+            dynamics component would not be excluded.
+
+            Overall, without the reduction of the derivative graph the CADRE problem
+            has 39 components with 64 edges. The total number of elements in
+            the corresponding linear system is 358305. Average execution time
+            for a single MDP case was 120 seconds.
+
+            In contrast, when the derivative graph is automatically reduced based on
+            relevance, the graph is reduced to 29 components with 45 edges.
+            The corresponding linear system has 293792 (an 18\% reduction in
+            problem size). Average execution time for a single case was
+            72 seconds, a \% 40 reduction over the
+            non-reduced problem.
 
 
   \section{Wind Turbine Design Problem (Justin/Andrew)}
