@@ -23,7 +23,12 @@
   \thanks{Associate Professor, Department of Aerospace Engineering, AIAA Associate Fellow}
   \\
   {\normalsize\itshape
-   University of Michigan, Ann Arbor, Michigan, 48109, United States}
+   University of Michigan, Ann Arbor, MI}\\
+  S. Andrew Ning
+    \thanks{Senior Engineer, National Wind Technology Center, AIAA Member}
+  \\
+  {\normalsize\itshape
+   National Renewable Energy Laboratory, Golden, CO}
 }
 
 \AIAAconference{Multidisciplinary Design Optimization Specialist Conference}
@@ -53,6 +58,7 @@
 \usepackage{appendix}
 \usepackage{listings}
 \usepackage[section]{placeins}
+\usepackage[superscript]{cite}
 
 \lstset{frame=single}
 \newcommand{\txt}{\textrm}
@@ -332,6 +338,7 @@ class ExampleComp(Component):
         more freedom in how derivatives are implemented. It also enables the computing of only
         relevant quantities. The only significant downside is a small amount of added implementation complexity.
         Two different methods, \texttt{apply\_deriv(arg, result)} and \texttt{apply\_derivT(arg, result)}, must be implemented
+
         for forward and adjoint derivatives respectively. In each case, \texttt{arg} and \texttt{result}
         are dictionaries with relevant inputs and outputs variable names as keys.
         If you know you will be using only forward or adjoint, you can implement only the
@@ -643,32 +650,59 @@ class ExampleComp(Component):
 
   \section{Wind Turbine Design Problem (Justin/Andrew)}
 
-    The goal of this design problem was to optimize a horizontal axis wind turbine
-    to maximize annual energy production. The problem considers the design of
-    the the rotor blades from an aero-structural perspective as well as the structural requirements of the tower. The analyses for this model were originally developed
-    by Ning et. al as part of a larger effort to develop a cost based design optimization
-    for wind turbines[CITATION NEEDED].
+    The goal of this design problem was to optimize a horizontal axis wind turbine to minimize the cost of energy. The problem considers the design of the rotor blades and tower from an aero-structural perspective as well as the structural requirements of the hub and nacelle.  Cost models for the turbine and wind plant are included to assess trade-offs in energy capture, capital costs and operational costs.  The analyses for this model are part of the Wind-Plant Integrated Systems Engineering \& Design Model (WISDEM) developed at NREL as part of a larger effort to develop a physics and cost based design optimization framework for wind turbines  \cite{Dykes2014a,Ning2013a,Ning2014,Ning2014d}
 
-    The problem formulation is given by: [Insert real problem formulation here]
+    A typical problem formulation is given in Tab.~\ref{tab:coe_formulation}.  Bound constraint are chosen to be large enough to not be active, except for those that must be restricted because of manufacturing or transportation reasons.  For simplicity, safety factors are not included in the list of constraints.
 
-    \begin{align}
-        \\\txt{max.} &\ \ \sum_{i=1}^6 D_i \notag
-        \\\txt{w.r.t.} & \ \ 0 \le I_{setpt} \le 4 \notag
-        \\     & \ \ 0 \le P_{comm} \le 25 \notag
-        \\     & \ \ 0 \le cellInstd \le 1 \notag
-        \\     & \ \ 0 \le finAngle \le \pi/2 \notag
-        \\     & \ \ 0 \le antAngle \le \pi \notag
-        \\     & \ \ 0.2 \le iSOC \le 1 \notag
-        \\\txt{s.t.} & \ \ I_{bat} - 5 \le 0 \notag
-        \\     & \ \ -10 - I_{bat} \le 0 \notag
-        \\     & \ \ 0.2 - SOC \le 0 \notag
-        \\     & \ \ SOC - 1 \le 0 \notag
-        \\     & \ \ fSOC - iSOC = 0 \notag
-        \label{eqn:wt_formulation}
-    \end{align}
 
-    There are ZZ disciplines involved in the modeling, as seen in Fig. \ref{fig:xdsm_wt}.
-    There are AA design variables, 1 objective, and BB constraints. Since there are
+    \begin{table}
+        \centering
+        \caption{Horizontal axis wind turbine optimization problem description.}
+        \begin{tabular}{r l l l}
+            \hline
+            & Variable/function & Description & Quantity \\
+            \hline
+            minimize            & $COE$ & Cost of energy \\
+            \\
+            with respect to & $0.4 \le c \le 20$ & Chord distribution & $5$ \\
+                                    & $-10 \le \theta \le 30$ & Twist distribution & $4$ \\
+                                    & $0.005 \le t_{sc} \le 0.2$ & Spar-cap thickness distribution & $5$ \\
+                                    & $0.005 \le t_{te} \le 0.2$ & Trailing-edge panel distribution & $5$ \\
+                                    & $3 \le \lambda \le 14$ & Tip-speed ratio in Region 2 & $1$ \\
+                                    & $10 \le \lambda \le 80$ & Max Tip Speed & $1$ \\
+                                    & $40 \le L_{blade} \le 100$ & Blade length & $1$ \\
+                                    & $0.1 \le L_{shaft} \le 10$ & Low speed shaft lengths & $2$ \\
+                                    & $0.01 \le h_{beam} \le 10$ & Bedplate I-beam sizing & $2$ \\
+                                    & $3.87 \le d \le 20$ & Tower diameter & $3$ \\
+                                    & $0.005 \le t \le 0.2$ & Tower wall thickness & $3$ \\
+                                    & $0.25 \le z_{waist} \le 0.75$ & Tower waist location & $1$ \\
+                                    & $50 \le H \le 200$ & Tower height & $1$ \\
+                                    & & Total & $34$ \\
+
+            \\
+            subject to          & $\delta_{tip} \le \delta_{max}$ & Blade tower strike & $1$ \\
+                                    & $\delta_{ground} \ge \delta_{min}$ & Blade ground clearance & $1$ \\
+                                    & $\epsilon \le \epsilon_{ult}$ & Ultimate strain in blades & $24$ \\
+                                    & $\epsilon \le \epsilon_{cr}$ & Panel buckling in blades & $14$ \\
+                                    & $damage \le 1$ & Fatigue damage in blades & $10$ \\
+                                    & $\delta_{lss} \le \delta_{max}$ & Deflection limits in low-speed shaft & $4$ \\
+                                    & $\delta_{bdp} \le \delta_{max}$ & Deflection limits in bedplate & $2$ \\
+                                    & $\sigma_{bdp} \le \sigma_{ult}$ & Ultimate stress in bedplate & $2$ \\
+                                    & $\sigma_{twr} \le \sigma_{ult}$ & Ultimate stress in tower & $14$ \\
+                                    & $\sigma_{twr} \le \sigma_{shell}$ & Shell buckling in tower & $14$ \\
+                                    & $\sigma_{twr} \le \sigma_{global}$ & Global buckling in tower & $14$ \\
+                                    & $damage \le 1$ & Fatigue damage in tower & $9$ \\
+                                    & $f \ge \Omega_{rotor}$ & Tower resonance avoidance & $1$ \\
+                                    & $d/t \ge 120$ & Weldability & $1$ \\
+                                    & $d_{top}/d_{base} > 0.4$ & Manufacturability & $1$ \\
+                                    & & Total & $112$ \\
+            \hline
+        \end{tabular}
+        \label{tab:coe_formulation}
+    \end{table}
+
+    There are ZZ disciplines involved in the modeling, as seen in Fig.~\ref{fig:xdsm_wt}.
+    There are 30 design variables, 1 objective, and 104 constraints. Since there are
     less design variables then quantities of interest, the problem was solved with
     forward derivatives. In addition, the relatively small size of the design space
     enabled the use of both analytic and finite difference gradients.
@@ -682,9 +716,8 @@ class ExampleComp(Component):
         \label{fig:xdsm_wt}
     \end{figure}
 
-    The aerodynamics discipline is modeled with a blade element
-    momentum (BEM) tool, CCBlade\cite{NING:BEM}. The use of CCBlade is significant because
-    it implements a version BEM specifically tailored to optimization.
+    The rotor aerodynamics discipline is modeled with a blade element momentum (BEM) tool, CCBlade\cite{NING:BEM}. The use of CCBlade is significant because it implements a BEM implementation specifically tailored to optimization.  Tower aerodynamics was modeled with assumed power-law wind profiles, and cylinder drag theory.  The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b}, a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for composite blades, and additional structural modules for panel buckling and fatigue.  Tower structures is modeled with pBEAM, and additional modules for shell buckling, global buckling, and fatigue.  Some drivetrain components were modeling with scaling relationships (bearings, yaw system, generator), while others were bottom-up physics models (bedplate, gearbox, low-speed shaft).
+
     Similar to the small satellite design problem, many of the disciplines were further
     sub-divided into more than one component for implementation. However, in the
     satellite problem, all components were left at the same level in the model. For this
