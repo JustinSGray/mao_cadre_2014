@@ -12,10 +12,10 @@ x.addComp('B', anl, 'B')
 
 
 x.addDep('A', 'Optimizer', dat, 'x', True)
-x.addDep('Solver', 'B', dat, 'y1')
-x.addDep('Solver', 'A', dat, 'y2')
-x.addDep('A', 'Solver', dat, 'y1')
-x.addDep('B', 'Solver', dat, 'y2')
+x.addDep('Solver', 'B', dat, 'y2')
+x.addDep('Solver', 'A', dat, 'y1')
+x.addDep('A', 'Solver', dat, 'y2')
+x.addDep('B', 'Solver', dat, 'y1')
 x.addDep('Optimizer','B', dat, 'z')
 
 
