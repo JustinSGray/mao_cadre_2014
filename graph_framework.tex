@@ -200,11 +200,15 @@
         OpenMDAO can calculate a gradient between any set of inputs and outputs nodes in a  
         model by setting up the appropriate linear system. The size of the linear system
         is determined by the number of variables being considered, which means that the linear
-        system can get very large. OpenMDAO is able to achieve significant reductions in the
+        system can get very large. Although the matrix-free approach to solving this system 
+        can handle larger problems well, it is still desirable to minimize the size of the problem 
+        as much as possible. OpenMDAO is able to achieve significant reductions in the
         size of the linear system by traversing the dependency graph to find the sub-set of relevant variables.
         For example, consider the notional graph in Fig. \ref{fig:graph2}. Considering $\frac{\partial Obj}{\partial param}$,
-        the relevant components variables and components are highlighted. Only Components 1, 3, and 5 are needed,
-        and furthermore only $C3.a$ is needed from Component 3.
+        the relevant components variables and components are highlighted. Only Components 1, 3, and 5 are needed.
+        Furthermore only $C3.a$ is needed from Component 3, because of component level sparsity. 
+        This means that only 4 variables are needed to solve for the derivatives, 
+        instead of 7 if you did not reduce the graph. 
 
         \begin{figure}[!htb]\begin{center}
           \includegraphics[width=.8\textwidth]{images/Graph2}
@@ -212,26 +216,29 @@
           and 5 with their interconnecting variables. \label{fig:graph2}}
         \end{center}\end{figure}
 
-        A sub-graph like the one in Fig. \ref{fig:graph2} can be found that gives
-        the minimum relevant set of components and variables necessary to solve for a specific
-        gradient.
+        A traversal from parameter to quantity of interest, as shown in Fig. \ref{fig:graph2}, is used when solving for 
+        forward derivatives. In forward mode, the traversal searches for all the variables that could possibly 
+        be affected by a change in the parameter. One traversal is necessary for each design variable in the 
+        problem formulation. To solve adjoint derivatives, a traversal must be made in 
+        the opposite direction. In order to do this, simply reverse all the edges in the dependency graph and 
+        perform one traversal from each quantity of interest to all possible parameters. 
+        
 
 
     \subsection{Cycle Detection and Usage}
         Pate et. al indicate that within a dependency graph, the presence of cycles indicates coupling between
-        the components in the cycle \cite{graph_problem2013}. A cycle can consist of two or more components, and
-        one component may be part of more than one cycle. In addition, a cycle can be induced by an explcit connection 
-        where data is passed directly from an output to an input, or by an implicit connection, where some input needs to
-        be varied in order to drive some output to zero.
-
-        In formal terms, cycles exist in a graph when a group of nodes are strongly connected. The NetworkX package
-        provides an implementation of Tarjans algorithm for finding sets of strongly connected
-        components\cite{tarjan1972depth,nuutila1994finding}. Once found, the presence of these cycles
-        have an impact on how any given model is solved. Firstly during normal execution, these cycles
+        the components in the cycle \cite{graph_problem2013}. Cycles can be induced by connections
+        where data is passed directly from an output to an input, or implicitly where an input needs to
+        be varied in order to drive a residual equation to zero. The presence of these cycles have 
+        an impact on how models are solved. Firstly during normal execution, these cycles 
         need to be converged with a numerical solver such as Gauss-Seidel or Newton-based solver.
-        In addition, these cycles need to be accounted for when solving for the gradients. This doesn't
-        pose any particular challenge for the gradient solution, though the Jacobian of a system with cycles is no longer
-        a triangular matrix.
+        In addition, these cycles need to be accounted for when solving for the derivatives. Martins and Hwang's 
+        unified gradient method allows for this situation, but requires the resulting residual equations be
+        handled in a slightly different manner from explicit variable relationships (ones without cycles). Hence 
+        it is important to be able to efficiently identify all cycles in the graph. In formal terms, 
+        cycles exist in a graph when a group of nodes are strongly connected. Tarjan's algorithm 
+        applied to the dependency graph provides an efficient means of finding the sets of strongly 
+        connected components\cite{tarjan1972depth,nuutila1994finding}. 
 
 
     \section{API for Specifying Discipline Derivatives (Tristan)}
@@ -305,22 +312,24 @@ class ExampleComp(Component):
 \end{minipage}
 
         Although the \texttt{provideJ()} method is easy to implement, it does have a few minor downsides. Firstly,
-        it requires that the whole Jacobian be assembled in memory. In most cases, with 10's or even 100's of variables
+        it requires that the component Jacobian be assembled in memory. In most cases, with 10's or even 100's of variables
         this is reasonable but if the Jacobian has a sparse structure it may still be wasteful to allocate memory for a
         full matrix. Furthermore, for situations like CFD, where there are millions of variables spread out
-        across many CPU's on an HPC cluster, assembling the full Jacobian is not feasible. Lastly, depending on how
-        your problem is configured, it's possible that not all of the variables will be needed for a given problem. With
-        \texttt{provideJ()} you still need to compute and provide the full Jacobian though some of it will be irrelevant.
-        In these situations, the \texttt{provideJ()} method should return nothing, and instead the
-        additional optional API methods should be implemented for improved efficiency.
+        across many CPUs, assembling the full Jacobian is simply not feasible. Lastly, depending on how
+        your problem is configured, it's possible that not all of the variables will be needed for a given problem as in Fig. \ref{fig:graph2}. 
+        With \texttt{provideJ()} you still need to compute and provide the full Jacobian though some of it will be irrelevant.
+        So in effect, using the \texttt{provideJ()} method can partially negate some of the benefits of problem sparsity. 
+        In general these inefficiencies are small and easily outweighed by the easy of implementation. But in cases where 
+        these downsides become a significant concern the \texttt{provideJ()} method should return nothing, and instead the
+        optional API methods should be implemented for improved efficiency.
 
     \subsection{Optional API Methods}
 
         In order to overcome some of the downsides to construction of the full Jacobian, the components can provide
         a linear operator that computes the effect of multiplying the Jacobian with a given vector. This provides
-        the freedom a lot more freedom in how derivatives are implemented. It also enables the computing of only
+        more freedom in how derivatives are implemented. It also enables the computing of only
         relevant quantities. The only significant downside is a small amount of added implementation complexity.
-        Two methods, \texttt{apply\_deriv(arg, result)} and \texttt{apply\_derivT(arg, result)}, must be implemented
+        Two different methods, \texttt{apply\_deriv(arg, result)} and \texttt{apply\_derivT(arg, result)}, must be implemented
         for forward and adjoint derivatives respectively. In each case, \texttt{arg} and \texttt{result}
         are dictionaries with relevant inputs and outputs variable names as keys.
         If you know you will be using only forward or adjoint, you can implement only the
