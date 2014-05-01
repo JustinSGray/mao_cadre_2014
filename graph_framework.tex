@@ -12,11 +12,6 @@
    \\
   {\normalsize\itshape
   NASA Glenn Research Center, Cleveland, OH}  \\
-  Andrew Ning,% 
-  \thanks{Postdoctoral Researcher, National Renewable Energy Laboratory}
-  \\
-  {\normalsize\itshape
-  National Renewable Energy Laboratory, Bolder, CO}  \\
   John T. Hwang,%
   \thanks{Ph.D. Candidate, Department of Aerospace Engineering, AIAA Student Member}
   \ Joaquim R. R. A. Martins%
@@ -99,7 +94,7 @@
     to the problem formulation in the future. To overcome this Moore developed a method for automatically assembling the system
     level derivatives based on the data-dependency graph of a given problem formulation\cite{openmdao_derivatives}. This
     work represented the first implementation of Martins and Hwang's unified approach to computing system level derivatives
-    which combined forward and adjoint based derivatives into a single theoretical framework\cite{Martins2012}. 
+    which combined forward and adjoint based derivatives into a single theoretical framework\cite{martins2013}. 
     In addition to allowing greater flexibility in the problem formulation, a key feature of Moore's graph-based approach, was the efficient
     handling of sparse problem formulations. By traversing the graph from design variables to quantities of interest,
     it was possible to consider only the subset of variables that were relevant to a specific system level gradient thus
@@ -490,7 +485,7 @@ class ExampleComp(Component):
     \subsection{Optimization Results}
 
 
-        \begin{figure}
+        \begin{figure}[!htb]
         \centering
         \includegraphics[width=0.99\textwidth]{images/opt}
         \caption[width=0.22\textwidth]{Convergence of the satellite problem.
@@ -503,8 +498,7 @@ class ExampleComp(Component):
         these iterations. The first row plots the
         value of the objective function, the total data downloaded over each design point. The objective
         function oscillated greatly over the course of the first half of the computed iterations, but
-        stabilized by the 80th iteration near the value previously determined \cite{CADRE2012}
-        to be the optimal design.
+        stabilized by the 80th iteration at around the final optimum of about 3852 GigaBytes transfered.
 
         The second row plots the maximum value of each constraint across all design points at
         each iteration. As all of the problem constraint are non-positive for a feasible design,
@@ -515,7 +509,7 @@ class ExampleComp(Component):
         infeasibility. Once a feasible state was reached (near the 50th iteration), the optimizer
         began refining the design towards a more favorable value of the objective function.
 
-        \begin{figure}
+        \begin{figure}[!htb]
         \centering
         \includegraphics[width=0.8\textwidth]{images/pt_3_data}
         \caption[width=0.4\textwidth]{Plots of the bit rate, communications systems power, craft roll angle,
@@ -558,9 +552,22 @@ class ExampleComp(Component):
         determined by the time points when the data bit rate values were calculated
         by the OpenMDAO model.
 
-        Figure \ref{pt3_g_earth} shows the communications bit rate along the trajectories of the
-        satellite during the $4^{\textrm{th}}$ design point. This can be compared
-        directly with Figure \ref{pt3_data_results}, where one large spike in communications
+         \begin{figure}[!htb]
+            \centering
+            \includegraphics[width=0.49\textwidth]{images/pt3_gearth3}
+            \includegraphics[width=0.49\textwidth]{images/allpts_gearth2}
+            \caption{Plot of the trajectories of the satellite
+            for the $4^{\textrm{th}}$ design point onto the surface of the Earth, illustrating the
+            communication data rates near the ground station.
+            \label{fig:trajectories1}
+            }
+        \end{figure}
+
+
+        Figure \ref{fig:trajectories1} shows the communications bit rate along the trajectories of the
+        satellite during the $4^{\textrm{th}}$ design point (left) and all points combined (right). 
+        This can be compared directly with the data rate results in 
+        Fig. \ref{pt3_data_results}, where one large spike in communications
         bit rate was preceded and then succeeded by two short time periods of lesser
         data rates. Plotted geographically, this is seen to be due to the procession of
         the satellites orbit, where the period of maximal data rate corresponds to a
@@ -568,47 +575,40 @@ class ExampleComp(Component):
         succeeding data rate spikes correspond to passes over the near Atlantic and
         Rocky Mountain regions, respectively.
 
+       
 
-        Figure \ref{allpt_flatmap} similarly shows trajectory and bit rate data plotted
-        from all six design points, centered on the United States. The orbital passes
-        that are close enough to the ground station for communications can all be seen.
-        Figure \ref{allpt_g_earth} zooms this view out to show coverage of the trajectories
-        of all design points across the Earth.
+        From Fig. \ref{fig:trajectories1} it's clear that the satellite is in a polar orbit. Since the
+        goal of the optimization was to maximize data downloaded, we re-ran problem with the ground 
+        station located at McMurdo Station, Antarctica because its position closer to the south poll 
+        provided more opportunities to transmit data. The final optimal result gave 10340 GigaBytes
+        transfered or about a 2.68X improvement. Fig \ref{fig:trajectories2} shows the ground trace 
+        for this situation, clearly showing a much higher density of transmission situations. 
 
-
-        \begin{figure}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/pt3_gearth3}
-        \caption[width=0.4\textwidth]{Plot of the trajectories of the satellite
-        for the $4^{\textrm{th}}$ design point onto the surface of the Earth, illustrating the
-        communication data rates near the ground station.
-        \label{pt3_g_earth}
-        }
-
+        \begin{figure}[!htb]
+            \centering
+            \includegraphics[width=0.49\textwidth]{images/allpts_gearth_mcmurdo}
+            \caption{Plot of the trajectories of the satellite
+            for the all design points onto the surface of the Earth, when the ground 
+            station is at McMurdo Station, AntArctica. 
+            \label{fig:trajectories2}
+            }
         \end{figure}
 
+        Figure \ref{fig:pt3_results_mcmurdo} provides the same selected variables as Fig. \ref{pt3_data_results}, 
+        for this alternate case on the $4^{\textrm{th}}$ design point. The data shows how the optimizer is 
+        able to handle the change in ground station and adjust the necessary schedules to re-optimize the 
+        satellite. Notably there are now 5 different data transmission events compared to only 3 before. 
 
-        \begin{figure}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/allpts_map_data}
-        \caption[width=0.4\textwidth]{Plot of the trajectories of the satellite
-        for all 6 design points onto the surface of the Earth, illustrating the
-        communication data rates near the ground station.
-        \label{allpt_flatmap}
-        }
 
+        \begin{figure}[!htbp]
+            \centering
+            \includegraphics[width=0.5\textwidth]{images/cadre_results_mcmurdo}
+            \caption{Plots of the bit rate, communications systems power, craft roll angle,
+        and battery charge level over the half-day time period covered by the $4^{\textrm{th}}$ design point 
+        with the ground station at McMurdo. }
+            \label{fig:pt3_results_mcmurdo}
         \end{figure}
 
-
-        \begin{figure}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/allpts_gearth2}
-        \caption[width=0.4\textwidth]{Plot of the trajectories of the satellite
-        for all 6 design points onto the surface of the Earth.
-        \label{allpt_g_earth}
-        }
-
-        \end{figure}
 
         \subsection{Performance Results}
 
@@ -616,7 +616,7 @@ class ExampleComp(Component):
             Macbook Pro (2.3 Ghz Core i7 processor, 4GB 1600 Mhz DDR3 memory, running OSX 10.8.5). 
             The problem was converged to a termination tolerance of $10^{-5}$. This tolerance
             was achieved within approximately 106 iterations, using the SNOPT\cite{gill2005snopt}
-            optimizer in about 6 hours. This represents a factor of 16 improvement in computational
+            optimizer in about 6 hours. This represents a 16x improvement in computational
             cost compares to the original implementation by Hwang et. al. 
 
 
@@ -652,7 +652,7 @@ class ExampleComp(Component):
 
     The goal of this design problem was to optimize a horizontal axis wind turbine to minimize the cost of energy. The problem considers the design of the rotor blades and tower from an aero-structural perspective as well as the structural requirements of the hub and nacelle.  Cost models for the turbine and wind plant are included to assess trade-offs in energy capture, capital costs and operational costs.  The analyses for this model are part of the Wind-Plant Integrated Systems Engineering \& Design Model (WISDEM) developed at NREL as part of a larger effort to develop a physics and cost based design optimization framework for wind turbines  \cite{Dykes2014a,Ning2013a,Ning2014,Ning2014d}
 
-    A typical problem formulation is given in Tab.~\ref{tab:coe_formulation}.  Bound constraint are chosen to be large enough to not be active, except for those that must be restricted because of manufacturing or transportation reasons.  For simplicity, safety factors are not included in the list of constraints.
+    A typical problem formulation is given in Tab.~\ref{tab:coe_formulation}.  Bound constraints were chosen to be large enough to not be active, except for those that must be restricted because of manufacturing or transportation reasons.  For simplicity, safety factors are not included in the list of constraints.
 
 
     \begin{table}
@@ -701,26 +701,51 @@ class ExampleComp(Component):
         \label{tab:coe_formulation}
     \end{table}
 
-    There are ZZ disciplines involved in the modeling, as seen in Fig.~\ref{fig:xdsm_wt}.
-    There are 30 design variables, 1 objective, and 104 constraints. Since there are
+
+    There are 34 design variables, 1 objective, and 112 constraints. Since there are
     less design variables then quantities of interest, the problem was solved with
     forward derivatives. In addition, the relatively small size of the design space
-    enabled the use of both analytic and finite difference gradients.
+    enabled the use of both analytic and finite difference gradients. There are 10 disciplines 
+    involved in the top level of the model, as seen in Fig.~\ref{fig:xdsm_wt}. Similar to the small 
+    satellite design problem, many of the disciplines were further
+    sub-divided into more than one component for implementation. However, in the
+    satellite problem, all components were left at the same level in the model. For this problem, 
+    actual sub-assemblies of components were made, adding a layer of abstraction. Rotor, 
+    Hub, Nacelle, Tower, Turbine Capital Cost, and Balance of Station are all 
+    assemblies with significant internal structures. This highly nested model structure was 
+    designed to support modularity in the model, to allow a wide range or researchers to build 
+    discipline models swap them in and out of the overall model. The presence of these 
+    sub-assemblies is important to how the derivatives are computed. The assemblies are
+    treated as an atomic discipline form the perspective of the top-level model. This means that
+    when derivatives are requested from the assembly, it will internally solver for its own 
+    boundary derivatives and report them to the top level assembly. 
+
+    The Rotor discipline in particular has a very complex structure, including some internal 
+    iterations on the PowerCurve component. 
+
+    The presence of these sub
 
 
     \begin{figure}[!htbp]
         \centering
-        [INSERT XDSM Diagram]
-        %\includegraphics[width=0.95\textwidth]{}
+        \includegraphics[width=0.95\textwidth]{xdsm/wt_xdsm}
         \caption{XDSM diagram of the wind turbine design optimization}
         \label{fig:xdsm_wt}
     \end{figure}
 
-    The rotor aerodynamics discipline is modeled with a blade element momentum (BEM) tool, CCBlade\cite{NING:BEM}. The use of CCBlade is significant because it implements a BEM implementation specifically tailored to optimization.  Tower aerodynamics was modeled with assumed power-law wind profiles, and cylinder drag theory.  The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b}, a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for composite blades, and additional structural modules for panel buckling and fatigue.  Tower structures is modeled with pBEAM, and additional modules for shell buckling, global buckling, and fatigue.  Some drivetrain components were modeling with scaling relationships (bearings, yaw system, generator), while others were bottom-up physics models (bedplate, gearbox, low-speed shaft).
+    The rotor aerodynamics discipline is modeled with a blade element momentum (BEM)
+    tool, CCBlade\cite{NING:BEM}. The use of CCBlade is significant because it implements
+    a BEM implementation specifically tailored to optimization.  Tower aerodynamics was 
+    modeled with assumed power-law wind profiles, and cylinder drag theory.
+    The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
+    a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for
+    composite blades, and additional structural modules for panel buckling and fatigue.
+    Tower structures is modeled with pBEAM, and additional modules for shell buckling,
+    global buckling, and fatigue.  Some drivetrain components were modeling with scaling
+    relationships (bearings, yaw system, generator), while others were bottom-up physics
+    models (bedplate, gearbox, low-speed shaft).
 
-    Similar to the small satellite design problem, many of the disciplines were further
-    sub-divided into more than one component for implementation. However, in the
-    satellite problem, all components were left at the same level in the model. For this
+     For this
     problem the components representing the XXX and YYY disciplines were
     grouped into sub-assemblies. Figure \ref{fig:wt_top_depgraph} shows the
     top level dependency graph for the problem. The XXX discipline assembly dependency
@@ -748,10 +773,11 @@ class ExampleComp(Component):
     problem formulation. It has a number of data connections throughout the dependency
     graph which are never relevant to the derivatives calculations. These non-relevant
     variables are used for various settings and initialization values throughout the
-    model. The interesting effect of these variables it that they necessitate the
-    graph based approach to identifying irrelevant variables. Without that, these
+    model, such as the number of blades on the rotor or the density of air. 
+    Such variables, especially when they are integers (or otherwise non-differentiable)
+    necessitate the graph based approach to identifying irrelevant variables. Without that, these
     variables would be included in the linear systems for derivatives causing erroneous
-    results.
+    results. 
 
 
     \subsection{Results}

@@ -78,11 +78,20 @@
 \pgfsetlayers{data,process,main}
 
 % A new command to split the component text over multiple lines
-\newcommand{\MultilineComponent}[3]
+\newcommand{\TwolineComponent}[3]
 {
 	\begin{minipage}{#1}
 	\begin{center}
 		#2 \linebreak #3
+	\end{center}
+	\end{minipage}
+}
+
+\newcommand{\ThreelineComponent}[4]
+{
+	\begin{minipage}{#1}
+	\begin{center}
+		#2 \linebreak #3 \linebreak #4
 	\end{center}
 	\end{minipage}
 }
