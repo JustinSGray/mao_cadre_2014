@@ -708,45 +708,42 @@ class ExampleComp(Component):
     enabled the use of both analytic and finite difference gradients. There are 10 disciplines 
     involved in the top level of the model, as seen in Fig.~\ref{fig:xdsm_wt}. Similar to the small 
     satellite design problem, many of the disciplines were further
-    sub-divided into more than one component for implementation. However, in the
-    satellite problem, all components were left at the same level in the model. For this problem, 
-    actual sub-assemblies of components were made, adding a layer of abstraction. Rotor, 
-    Hub, Nacelle, Tower, Turbine Capital Cost, and Balance of Station are all 
-    assemblies with significant internal structures. This highly nested model structure was 
-    designed to support modularity in the model, to allow a wide range or researchers to build 
-    discipline models swap them in and out of the overall model. The presence of these 
-    sub-assemblies is important to how the derivatives are computed. The assemblies are
-    treated as an atomic discipline form the perspective of the top-level model. This means that
-    when derivatives are requested from the assembly, it will internally solver for its own 
-    boundary derivatives and report them to the top level assembly. 
-
-    The Rotor discipline in particular has a very complex structure, including some internal 
-    iterations on the PowerCurve component. 
-
-    The presence of these sub
-
+    sub-divided into more than one component for implementation. In the
+    satellite problem, all components were left at the same level in the model but for this problem, 
+    actual sub-assemblies of components were made. Rotor, Hub, Nacelle, Tower, Turbine Capital Cost, 
+    and Balance of Station were all assemblies with significant internal structures. 
+    This highly nested model structure was designed to support modularity in the model, 
+    to allow a wide range or researchers to build discipline models swap them in and out 
+    of the overall model. The presence of these sub-assemblies is important to how the 
+    derivatives are computed. The assemblies are treated as an atomic discipline from the 
+    perspective of the top-level model. This means that when derivatives are requested from 
+    the assembly, it will internally solver for its own boundary derivatives and report 
+    them to the top level assembly. 
 
     \begin{figure}[!htbp]
         \centering
         \includegraphics[width=0.95\textwidth]{xdsm/wt_xdsm}
-        \caption{XDSM diagram of the wind turbine design optimization}
+        \caption{XDSM diagram of the top level wind turbine design optimization problem}
         \label{fig:xdsm_wt}
     \end{figure}
 
-    The rotor aerodynamics discipline is modeled with a blade element momentum (BEM)
+    The Rotor discipline, responsible for modeling aerodynamics, uses a blade element momentum (BEM)
     tool, CCBlade\cite{NING:BEM}. The use of CCBlade is significant because it implements
-    a BEM implementation specifically tailored to optimization.  Tower aerodynamics was 
-    modeled with assumed power-law wind profiles, and cylinder drag theory.
-    The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
+    a BEM implementation specifically tailored to optimization. This sub-assembly in particular has 
+    important internal structure, including an convergence on the PowerCurve discipline to find the 
+    rated velocity, $V_rated$, for the wind turbine. This convergence loop requires the Rotor 
+    sub-assembly to compute coupled derivatives. The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
     a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for
-    composite blades, and additional structural modules for panel buckling and fatigue.
-    Tower structures is modeled with pBEAM, and additional modules for shell buckling,
+    composite blades, and additional structural modules for panel buckling and fatigue.In the Tower sub-assembly, 
+    aerodynamics was modeled with assumed power-law wind profiles, and cylinder drag theory.
+    Tower structures was modeled with pBEAM, and additional modules for shell buckling,
     global buckling, and fatigue.  Some drivetrain components were modeling with scaling
     relationships (bearings, yaw system, generator), while others were bottom-up physics
-    models (bedplate, gearbox, low-speed shaft).
+    models (bedplate, gearbox, low-speed shaft). The overall complexity of 
+    this problem is clear from the connectivity graph, 
 
-     For this
-    problem the components representing the XXX and YYY disciplines were
+
+    For this problem the components representing the XXX and YYY disciplines were
     grouped into sub-assemblies. Figure \ref{fig:wt_top_depgraph} shows the
     top level dependency graph for the problem. The XXX discipline assembly dependency
     graph is in Fig. \ref{fig:wt_sub_depgraph} shows the internal configuration
