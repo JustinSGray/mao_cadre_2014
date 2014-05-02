@@ -617,12 +617,36 @@ class ExampleComp(Component):
             The problem was converged to a termination tolerance of $10^{-5}$. This tolerance
             was achieved within approximately 106 iterations, using the SNOPT\cite{gill2005snopt}
             optimizer in about 6 hours. This represents a 16x improvement in computational
-            cost compares to the original implementation by Hwang et. al. 
+            cost compared to the original implementation by Hwang et. al. 
 
+
+            \begin{table}
+                \centering
+                \caption{Effects of relevance based problem reduction on derivatives linear system size.}
+                \begin{tabular}{|l|c|c|c|}
+                                 & Full Graph & Reduced Graph & \% Reduction\\
+                    # Variables  & 2.15e6 & 1.76e6 & 18.1\%\\
+                    # Components & 39 & 29 & 25.6\%\\
+                \end{tabular}   
+                \label{tab:cadre-relevance-reduction}
+            \end{table}
 
             Reduction of the derivative dependency graph, as discussed in
-            Section \ref{section:depgraph}, is key for efficient execution
-            of the CADRE problem; as there are a number of components which
+            Section \ref{section:depgraph}, is the key to efficiency gains. Table \ref{tab:cadre-relevance-reduction}
+            shows an 18.1\% reduction in the total number of variables in the linear system. This yields a 
+            reduction in the overall computational cost of solving derivatives. While the overall reduction 
+            in computation time is over 1 order of magnitude, a simple comparison of the compute times 
+            for a derivative evaluation of the objective function between the reduced and full variable set 
+            shows only a 40\% reduction. The remaining computation savings can only be accounted for by looking 
+            at the cost of each iteration over the course of an entire optimization. 
+
+            
+
+
+
+
+
+            here are a number of components which
             perform essential computations for the problem but do not have any influence
             on the fundamental design problem directly. For example, consider the orbital
             dynamics component, which computes the position and velocity of the satellite over
@@ -714,13 +738,14 @@ class ExampleComp(Component):
     and Balance of Station were all assemblies with significant internal structures. 
     This highly nested model structure was designed to support modularity in the model, 
     to allow a wide range or researchers to build discipline models swap them in and out 
-    of the overall model. The presence of these sub-assemblies is important to how the 
-    derivatives are computed. The assemblies are treated as an atomic discipline from the 
-    perspective of the top-level model. This means that when derivatives are requested from 
-    the assembly, it will internally solver for its own boundary derivatives and report 
-    them to the top level assembly. 
+    of the overall model. It also greatly simplifies the complexity of the top level model, 
+    as shown in Fig. \ref{fig:wt_top_depgraph}, which is much simpler than Fig. \ref{fig:cadre_graph} 
+    showing the small satellite problem. The presence of these sub-assemblies is important to how the derivatives are computed. 
+    The assemblies are treated as an atomic discipline from the perspective of the top-level model. 
+    This means that when derivatives are requested from the assembly, it will internally solver 
+    for its own boundary derivatives and report them to the top level assembly. 
 
-    \begin{figure}[!htbp]
+    \begin{figure}[!p]
         \centering
         \includegraphics[width=0.95\textwidth]{xdsm/wt_xdsm}
         \caption{XDSM diagram of the top level wind turbine design optimization problem}
@@ -732,50 +757,48 @@ class ExampleComp(Component):
     a BEM implementation specifically tailored to optimization. This sub-assembly in particular has 
     important internal structure, including an convergence on the PowerCurve discipline to find the 
     rated velocity, $V_rated$, for the wind turbine. This convergence loop requires the Rotor 
-    sub-assembly to compute coupled derivatives. The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
+    sub-assembly to compute coupled derivatives. Figure \ref{fig:wt_sub_depgraph} shows the complete 
+    dependency graph for the Rotor discipline, which has 26 components in total. 
+
+    The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
     a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for
     composite blades, and additional structural modules for panel buckling and fatigue.In the Tower sub-assembly, 
     aerodynamics was modeled with assumed power-law wind profiles, and cylinder drag theory.
     Tower structures was modeled with pBEAM, and additional modules for shell buckling,
     global buckling, and fatigue.  Some drivetrain components were modeling with scaling
     relationships (bearings, yaw system, generator), while others were bottom-up physics
-    models (bedplate, gearbox, low-speed shaft). The overall complexity of 
-    this problem is clear from the connectivity graph, 
+    models (bedplate, gearbox, low-speed shaft). 
 
-
-    For this problem the components representing the XXX and YYY disciplines were
-    grouped into sub-assemblies. Figure \ref{fig:wt_top_depgraph} shows the
-    top level dependency graph for the problem. The XXX discipline assembly dependency
-    graph is in Fig. \ref{fig:wt_sub_depgraph} shows the internal configuration
-    of components, as well as their links to the top level model.
 
     \begin{figure}[!htbp]
         \centering
-        [Insert Top Level Dependency Graph]
-        %\includegraphics[width=0.95\textwidth]{}
+        %Insert Top Level Dependency Graph]
+        \includegraphics[width=0.5\textwidth]{images/wt_depgraph}
         \caption{Wind turbine problem top level dependency graph}
         \label{fig:wt_top_depgraph}
     \end{figure}
 
     \begin{figure}[!htbp]
         \centering
-        [Insert Sub-Assembly Dependency Graphs]
-        %\includegraphics[width=0.95\textwidth]{}
-        \caption{Sub-assembly XXX dependency graph}
+        %[Insert Sub-Assembly Dependency Graphs]
+        \includegraphics[width=0.7\textwidth]{images/rotor_depgraph}
+        \caption{Rotor sub-assembly dependency graph}
         \label{fig:wt_sub_depgraph}
     \end{figure}
 
 
-    This problem has one additional interesting characteristic with regards to its
-    problem formulation. It has a number of data connections throughout the dependency
-    graph which are never relevant to the derivatives calculations. These non-relevant
+    This problem has one additional interesting characteristic in its
+    problem formulation. A number of data connections throughout the dependency
+    graph are never relevant to the derivatives calculations. These non-relevant
     variables are used for various settings and initialization values throughout the
-    model, such as the number of blades on the rotor or the density of air. 
+    model, such as the number of blades on the rotor or the density of air. For convenience 
+    and consistency, the variables do still have connections so that the right values can 
+    be set in one place and passed to all necessary components automatically. 
     Such variables, especially when they are integers (or otherwise non-differentiable)
-    necessitate the graph based approach to identifying irrelevant variables. Without that, these
-    variables would be included in the linear systems for derivatives causing erroneous
-    results. 
-
+    necessitate the graph based approach to identify irrelevant variables. Without that, these
+    variables would be included in the linear systems for computing derivatives. At best, 
+    the continuous non-relevant variables would only make the linear solve a bit slower. 
+    But at worse, the discrete non-relevant variables would prevent the system from working properly at all. 
 
     \subsection{Results}
         \begin{itemize}
