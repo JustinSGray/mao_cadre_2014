@@ -54,6 +54,8 @@
 \usepackage{listings}
 \usepackage[section]{placeins}
 \usepackage[superscript]{cite}
+\usepackage{esdiff}
+\usepackage{bm}
 
 \lstset{frame=single}
 \newcommand{\txt}{\textrm}
@@ -126,8 +128,34 @@
     performance were made, demonstrating faster and tighter convergence with analytic gradients. 
 
   \section{Unified Derivatives Computations (John)}
-    Short summary of the unified derivatives method and it's implications for forward or adjoint derivatives.
-
+  
+	There are several methods for computing system-level derivatives that differ in accuracy, efficiency, and ease of implementation.
+	The black-box finite-difference approximations involve the least amount of implementation effort, but they suffer from accuracy limitations that worsen with increasing nonlinearity in the model due to the combination of truncation and subtractive cancellation error.
+	Furthermore, the cost is at best the number of design variables times the cost of evaluating the full multidisciplinary model.
+	The complex-step method eliminates the accuracy issue at the cost of increased implementation complexity, but is typically two to three times slower than finite differences which is already relatively inefficient.
+	
+	The complex-step method can be invasive to a small extent, but the remaining methods typically require an even greater level of source code access and modification.
+	Algorithmic differentiation (AD) uses automated tools to symbolically differentiate at the line-of-code level and combine the resulting partial derivatives to obtain numerically exact values for the system-level derivatives.
+	AD operates in the forward and reverse modes, with the cost of the former proportional to the number of design variables and the latter to the number of output functions.
+	Analytic methods have the same two modes of operation, and have the added advantage that only a linear system needs to be solved to obtain a vector of derivatives, which is cheaper than an evaluation of the model in some cases.
+	
+	When implementing multidisciplinary problems, derivatives for each individual discipline are typically available and must be combined to compute system-level derivatives.
+	The manner in which the derivatives are combined is highly problem-dependent.
+	If there is no feedback among the disciplines and they are explicit functions, one can simply use the chain rule at the discipline-level.
+	If all of the disciplines have residuals from the discretization of governing equations, the coupled adjoint or coupled direct method would be the most appropriate for computing system-level derivatives.
+	If the disciplines are explicit but there is coupling among disciplines, the GSE1 equations must be used.
+	
+	A framework that automatically computes system-level total derivatives from user-provided partial derivatives for each discipline must be able to apply the most appropriate method for the situation (explicit/implicit, coupled/sequential, etc.).
+	This is greatly facilitated by a unification of derivative computation methods using a single equation from which all methods can be derived~[REF]:
+	\begin{equation}
+		\diffp[]{\bm C}{\bm v} \diff{\bm v}{\bm c} = \mathcal{\bm I} = \left. \diffp[]{\bm C}{\bm v} \right.^T \left. \diff{\bm v}{\bm c} \right.^T
+	\end{equation}
+	where $\bm C$ represents the vector of functions that constrain the variables $\bm v$ to their appropriate values.
+	
+	By appropriately choosing $\bm v$ and $\bm C$, the chain rule, black-box methods, analytic methods, the GSE1 equations, and algorithmic differentiation can be derived.
+	For instance, including only the design variables and output variables in $\bm v$ yields a black-box method since all intermediate variables involved in computing the output variables are ignored in this situation.
+	The significance of the above equation is that it enables a much simpler implementation of the derivative computation algorithm in the framework.
+	Regardless of the specifics of a given problem, computing derivatives reduces to solving a linear system in the left or right equality of the above equation.
 
   \section{Dependency Graph (Ken/Justin)}\label{section:depgraph}
 
