@@ -290,7 +290,7 @@
         A component is allowed to declare derivatives support for an arbitrary sub-set of all its variables.
 
         The second method is \texttt{provideJ()}. This method serves two purposes. First, it provides the
-        opportunity to perform any one time work needed for linerization around the current point. Secondly,
+        opportunity to perform any one time work needed for linearization around the current point. Secondly,
         the method can optionally return the actual Jacobian, in the form of a $n \times m$ vector where $n$ is the
         number of outputs and $m$ is the number of inputs. The ordering of the rows and columns of the Jacobian
         must match the order of the variables returned for \texttt{list\_deriv\_vars()}. When a Jacobian is
@@ -474,7 +474,7 @@ class ExampleComp(Component):
     \end{table}
 
     The objective of the optimization was to maximize the total amount of data transmitted to the ground
-    station, located in Ann Arbor, MI, over these six design points. There are 7 design varibles listed in Tabl. \ref{eqn:cadre_formulation}.
+    station, located in Ann Arbor, MI, over these six design points. There are 7 design variables listed in Tabl. \ref{eqn:cadre_formulation}.
     3 of them, $\gamma$, $I_{setpt}$, and $P_{comm}$, are arrays of time varying schedules for the attitude,
     solar panel current, and communications power respectively. The remaining 4, $cellInstd$, $finAngle$, $antAngle$, $iSOC$,
     are all physical design variables of the satellite. All together there are 25,292 design variables.
@@ -523,19 +523,12 @@ class ExampleComp(Component):
 
 
         Figure \ref{convergence} illustrates the convergence of the satellite problem over the course of
-        these iterations. The first row plots the
-        value of the objective function, the total data downloaded over each design point. The objective
-        function oscillated greatly over the course of the first half of the computed iterations, but
-        stabilized by the 80th iteration at around the final optimum of about 3969 GigaBytes transfered.
-
-        The second row plots the maximum value of each constraint across all design points at
-        each iteration. As all of the problem constraint are non-positive for a feasible design,
-        this can be taken as a cursory measure of overall problem feasibility.
-        The third row plots the maximum value of each constraint across each of the design points,
-        but separated according to specific constraint type. These two plots both indicate that the
-        oscillatory behavior of the objective function coincided with a steady decrease in design
-        infeasibility. Once a feasible state was reached (near the 80th iteration), the optimizer
-        began refining the design towards a more favorable value of the objective function.
+        the optimization. The top plot shows the value of the objective function, the total data downloaded. 
+        The bottom plot shows the maximum value of each of the 5 constraints, from across all 6 design points.
+        The objective function oscillated greatly over the course of the first half of the computed iterations, 
+        while the optimizer sough a feasible solution. The discharge limit, battery capacity, and SOC periodicity
+        constraints were the most constraining. Around the 80th iteration a mostly feasible solution was found and 
+        the remaining effort was spent improving the Objective. The final optimum had 3969 GigaBytes transfered. 
 
         \begin{figure}[!htb]
         \centering
@@ -609,7 +602,7 @@ class ExampleComp(Component):
         goal of the optimization was to maximize data downloaded, we re-ran problem with the ground 
         station located at McMurdo Station, Antarctica because its position closer to the south poll 
         provided more opportunities to transmit data. The final optimal result gave 10340 GigaBytes
-        transfered or about a 2.68X improvement. Fig \ref{fig:trajectories2} shows the ground trace 
+        transfered or about a 2.6X improvement. Fig \ref{fig:trajectories2} shows the ground trace 
         for this situation, clearly showing a much higher density of transmission situations. 
 
         \begin{figure}[!htb]
@@ -670,7 +663,7 @@ class ExampleComp(Component):
             reduction in the overall computational cost of solving derivatives of 16.3\%. Figure \ref{fig:cadre-compute-cost}
             gives a more detailed view of how these cost savings are achieved by comparison between compute times
             of the first 50 iterations. Computational cost varies, but overall the non-reduced test case remains higher
-            throughout the optimization. 
+            throughout the optimization by roughly a constant percentage. 
 
             \begin{figure}[!htbp]
                 \centering
@@ -817,12 +810,16 @@ class ExampleComp(Component):
 
   \section{Conclusion (Justin/Tristan)}
 
-      This work demonstrates how a graph-based approach to problem formulation compliments and enhances the benefits of gradient based
-      optimization. The graph provides a proper structure to handle the necessary bookkeeping to automatically implement complex
-      problem formulations while making use of analytic gradients. By implementing this graph based approach in OpenMDAO, the framework
-      can alleviate the responsibilities for such bookkeeping from the user entirely which dramatically simplifies implementation.
+      Sparsity exists at different levels of granularity throughout a multidisciplinary design problem. Certain 
+      disciplines may not be relevant to all objectives/constraints. Not all variables within a discipline will 
+      be relevant. We implemented a graph-based approach to identify the sparsity in any given formulation, with
+      a graph structure designed to allow for efficient usage even with millions of variables. We further developed a flexible API 
+      that allowed disciplines to declare their partial derivatives to OpenMDAO in a manner that takes full advantage of any sparsity 
+      found in the problem formulation. 
 
-      The two problems examined in this work demonstrate that a single framework can operate efficiently and effectively on a wide range of large-scale problems.
+      The approach was demonstrated on two 
+      problems with very different characteristics. The small satellite design problem had 1000's of design variables, millions of 
+      system level variables, and used adjoint gradients. 
 
   \bibliography{references}
 
