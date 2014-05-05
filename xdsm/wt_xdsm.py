@@ -23,7 +23,7 @@ x.addDep('tcc_a', 'nacelle', dat, '$m_{nacelle}$')
 x.addDep('tcc_a', 'tower', dat, '$m_{tower}$')
 
 x.addDep('bos_a', 'rotor', dat, '\TwolineComponent{2.5cm}{$m_{blade}$, $P_{rated}$}{$d_{rotor}$}')
-x.addDep('bos_a', 'tcc_a', dat, "$\$_{turbine}$")
+x.addDep('bos_a', 'tcc_a', dat, "$\$_{tcc}$")
 
 x.addDep('opex_a', 'rotor', dat, '$P_{rated}$')
 x.addDep('opex_a', 'aep_a', dat, '$AEP_{net}$')
@@ -55,7 +55,7 @@ x.addDep('nacelle', 'Optimizer', dat, "$L_{shaft}, h_{beam}$")
 x.addDep('tower', 'Optimizer', dat, "$d, t, z_{waist}$")
 
 
-x.addDep('Optimizer', 'rotor', dat, "\ThreelineComponent{2.8cm}{$\\delta_{rotor}, \epsilon, \Omega, \epsilon^*_{rotor}$}{$damage_{rotor}$}")
+x.addDep('Optimizer', 'rotor', dat, "\TwolineComponent{2.8cm}{$\\delta_{rotor}, \epsilon, \Omega, \epsilon^*_{rotor}$}{$damage_{rotor}$}")
 x.addDep('Optimizer', 'nacelle', dat, "$\\sigma_{nacelle}, \epsilon, \\theta_{lss}$")
 x.addDep('Optimizer', 'deflection', dat, "$\\delta_{max}$")
 x.addDep('Optimizer', 'tower', dat, "\TwolineComponent{3.0cm}{$d_{top}, d_{base}, \sigma_{tower}$}{$\sigma^*_{tower}, damage_{tower}$}")
