@@ -745,12 +745,12 @@ class ExampleComp(Component):
     actual sub-assemblies of components were made. Rotor, Hub, Nacelle, Tower, Turbine Capital Cost, 
     and Balance of Station were all assemblies with significant internal structures. 
     This highly nested model structure was designed to support modularity in the model, 
-    to allow a wide range or researchers to build discipline models swap them in and out 
+    to allow a wide range or researchers to build discipline models swap and them in and out 
     of the overall model. It also greatly simplifies the complexity of the top level model, 
     as shown in Fig. \ref{fig:wt_top_depgraph}, which is much simpler than Fig. \ref{fig:cadre_graph} 
     showing the small satellite problem. The presence of these sub-assemblies is important to how the derivatives are computed. 
     The assemblies are treated as an atomic discipline from the perspective of the top-level model. 
-    This means that when derivatives are requested from the assembly, it will internally solver 
+    This means that when derivatives are requested from the assembly, it will internally solve 
     for its own boundary derivatives and report them to the top level assembly. 
 
     \begin{figure}[!p]
@@ -760,21 +760,21 @@ class ExampleComp(Component):
         \label{fig:xdsm_wt}
     \end{figure}
 
-    The Rotor discipline in particular has an important internal with regard to computing derivatives. 
+    The Rotor discipline in particular has an important internal feature with regard to computing derivatives. 
     The rotor sub-assembly is responsible for modeling aerodynamics, using CCBlade\cite{NING:BEM}, 
-    a blade element momentum (BEM) tool specifically tailored to optimization. It includes a
+    a blade element momentum (BEM) tool specifically tailored to optimization. It includes 
     an internal convergence on the PowerCurve discipline to find the 
-    rated velocity, $V_rated$, for the wind turbine. This convergence loop requires the Rotor 
+    rated velocity, $V_{rated}$, for the wind turbine. This convergence loop requires the Rotor 
     sub-assembly to compute coupled derivatives. Figure \ref{fig:wt_sub_depgraph} shows the complete 
     dependency graph for the Rotor discipline, which has 26 components in total. 
 
     The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
     a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for
     composite blades, and additional structural modules for panel buckling and fatigue. In the Tower sub-assembly, 
-    aerodynamics was modeled with assumed power-law wind profiles, and cylinder drag theory.
+    aerodynamics was modeled with power-law wind profiles, and cylinder drag theory.
     Tower structures was modeled with pBEAM, and additional modules for shell buckling,
     global buckling, and fatigue.  Some drivetrain components were modeling with scaling
-    relationships (bearings, yaw system, generator), while others were bottom-up physics
+    relationships (bearings, yaw system, generator), while others used bottom-up physics
     models (bedplate, gearbox, low-speed shaft). 
 
 
@@ -803,7 +803,7 @@ class ExampleComp(Component):
     and consistency, the variables do still have connections so that the right values can 
     be set in one place and passed to all necessary components automatically. 
     Such variables, especially when they are integers (or otherwise non-differentiable)
-    necessitate the graph based approach to identify irrelevant variables. Without that, these
+    necessitate the graph-based approach to identify irrelevant variables. Without that, these
     variables would be included in the linear systems for computing derivatives. At best, 
     the continuous non-relevant variables would only make the linear solve a bit slower. 
     At worse, the discrete non-relevant variables would prevent the derivatives computation from working properly at all. 
