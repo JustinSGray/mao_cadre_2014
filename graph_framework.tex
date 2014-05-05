@@ -487,8 +487,8 @@ class ExampleComp(Component):
 
         \begin{figure}[!htb]
         \centering
-        \includegraphics[width=0.99\textwidth]{images/opt}
-        \caption[width=0.22\textwidth]{Convergence of the satellite problem.
+        \includegraphics[width=0.99\textwidth]{images/cadre_opt_progress}
+        \caption[width=0.22\textwidth]{Iteration history of the satellite problem.
         \label{convergence}
         }
         \end{figure}
@@ -498,7 +498,7 @@ class ExampleComp(Component):
         these iterations. The first row plots the
         value of the objective function, the total data downloaded over each design point. The objective
         function oscillated greatly over the course of the first half of the computed iterations, but
-        stabilized by the 80th iteration at around the final optimum of about 3852 GigaBytes transfered.
+        stabilized by the 80th iteration at around the final optimum of about 3969 GigaBytes transfered.
 
         The second row plots the maximum value of each constraint across all design points at
         each iteration. As all of the problem constraint are non-positive for a feasible design,
@@ -506,7 +506,7 @@ class ExampleComp(Component):
         The third row plots the maximum value of each constraint across each of the design points,
         but separated according to specific constraint type. These two plots both indicate that the
         oscillatory behavior of the objective function coincided with a steady decrease in design
-        infeasibility. Once a feasible state was reached (near the 50th iteration), the optimizer
+        infeasibility. Once a feasible state was reached (near the 80th iteration), the optimizer
         began refining the design towards a more favorable value of the objective function.
 
         \begin{figure}[!htb]
@@ -613,20 +613,25 @@ class ExampleComp(Component):
         \subsection{Performance Results}
 
             The OpenMDAO implementation of the satellite problem was executed on a
-            Macbook Pro (2.3 Ghz Core i7 processor, 4GB 1600 Mhz DDR3 memory, running OSX 10.8.5). 
-            The problem was converged to a termination tolerance of $10^{-5}$. This tolerance
-            was achieved within approximately 106 iterations, using the SNOPT\cite{gill2005snopt}
-            optimizer in about 6 hours. This represents a 16x improvement in computational
-            cost compared to the original implementation by Hwang et. al. 
+            Macbook Pro (2.6 Ghz Core i7 processor, 16GB 1600 Mhz DDR3 memory, running OSX 10.8.5). 
+            The problem was converged to a termination tolerance of $10^{-4}$. This tolerance
+            was achieved within approximately 150 iterations, using the SNOPT\cite{gill2005snopt}
+            optimizer in about 6 hours. 
 
 
             \begin{table}
                 \centering
                 \caption{Effects of relevance based problem reduction on derivatives linear system size.}
-                \begin{tabular}{|l|c|c|c|}
+                \begin{tabular}{l c c c}
+                    \hline
+
                                  & Full Graph & Reduced Graph & \% Reduction\\
-                    # Variables  & 2.15e6 & 1.76e6 & 18.1\%\\
-                    # Components & 39 & 29 & 25.6\%\\
+                    \hline
+
+                    \# Variables  & 2.15e6 & 1.76e6 & 18.1\%\\ \hline
+                    \# Components & 39 & 29 & 25.6\%\\ \hline
+                    \# Run Time (hours) & 8.94 & 10.68 & 16.3\%\\ 
+                    \hline
                 \end{tabular}   
                 \label{tab:cadre-relevance-reduction}
             \end{table}
@@ -634,42 +639,17 @@ class ExampleComp(Component):
             Reduction of the derivative dependency graph, as discussed in
             Section \ref{section:depgraph}, is the key to efficiency gains. Table \ref{tab:cadre-relevance-reduction}
             shows an 18.1\% reduction in the total number of variables in the linear system. This yields a 
-            reduction in the overall computational cost of solving derivatives. While the overall reduction 
-            in computation time is over 1 order of magnitude, a simple comparison of the compute times 
-            for a derivative evaluation of the objective function between the reduced and full variable set 
-            shows only a 40\% reduction. The remaining computation savings can only be accounted for by looking 
-            at the cost of each iteration over the course of an entire optimization. 
+            reduction in the overall computational cost of solving derivatives of 16.3\%. Figure \ref{fig:cadre-compute-cost}
+            gives a more detailed view of how these cost savings are achieved by comparison between compute times
+            of the first 50 iterations. Computational cost varies, but overall the non-reduced test case remains higher
+            throughout the optimization. 
 
-            
-
-
-
-
-
-            here are a number of components which
-            perform essential computations for the problem but do not have any influence
-            on the fundamental design problem directly. For example, consider the orbital
-            dynamics component, which computes the position and velocity of the satellite over
-            time for each of the 6 design points. This component is not
-            influenced by any of the design variables listed in Table \ref{eqn:cadre_formulation}. Therefore,
-            there is clearly no need for this component to be executed more than once
-            per design point, and the framework should exclude it from the
-            derivatives dependency graph. However if the problem was
-            reformulated to include, for example, selected orbital insertion parameters as
-            design variables, then this would not be the case and the orbital
-            dynamics component would not be excluded.
-
-            Overall, without the reduction of the derivative graph the CADRE problem
-            has 39 components with 64 edges. The total number of elements in
-            the corresponding linear system is 358305. Average execution time
-            for a single MDP case was 120 seconds.
-
-            In contrast, when the derivative graph is automatically reduced based on
-            relevance, the graph is reduced to 29 components with 45 edges.
-            The corresponding linear system has 293792 (an 18\% reduction in
-            problem size). Average execution time for a single case was
-            72 seconds, a \% 40 reduction over the
-            non-reduced problem.
+            \begin{figure}[!htbp]
+                \centering
+                \includegraphics[width=0.5\textwidth]{images/cadre_compute_cost}
+                \caption{Computational cost the first 50 iterations of the small satellite problem}
+                \label{fig:cadre-compute-cost}
+            \end{figure}
 
 
   \section{Wind Turbine Design Problem (Justin/Andrew)}
@@ -752,17 +732,17 @@ class ExampleComp(Component):
         \label{fig:xdsm_wt}
     \end{figure}
 
-    The Rotor discipline, responsible for modeling aerodynamics, uses a blade element momentum (BEM)
-    tool, CCBlade\cite{NING:BEM}. The use of CCBlade is significant because it implements
-    a BEM implementation specifically tailored to optimization. This sub-assembly in particular has 
-    important internal structure, including an convergence on the PowerCurve discipline to find the 
+    The Rotor discipline in particular has an important internal with regard to computing derivatives. 
+    The rotor sub-assembly is responsible for modeling aerodynamics, using CCBlade\cite{NING:BEM}, 
+    a blade element momentum (BEM) tool specifically tailored to optimization. It includes a
+    an internal convergence on the PowerCurve discipline to find the 
     rated velocity, $V_rated$, for the wind turbine. This convergence loop requires the Rotor 
     sub-assembly to compute coupled derivatives. Figure \ref{fig:wt_sub_depgraph} shows the complete 
     dependency graph for the Rotor discipline, which has 26 components in total. 
 
     The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
     a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for
-    composite blades, and additional structural modules for panel buckling and fatigue.In the Tower sub-assembly, 
+    composite blades, and additional structural modules for panel buckling and fatigue. In the Tower sub-assembly, 
     aerodynamics was modeled with assumed power-law wind profiles, and cylinder drag theory.
     Tower structures was modeled with pBEAM, and additional modules for shell buckling,
     global buckling, and fatigue.  Some drivetrain components were modeling with scaling
@@ -798,7 +778,7 @@ class ExampleComp(Component):
     necessitate the graph based approach to identify irrelevant variables. Without that, these
     variables would be included in the linear systems for computing derivatives. At best, 
     the continuous non-relevant variables would only make the linear solve a bit slower. 
-    But at worse, the discrete non-relevant variables would prevent the system from working properly at all. 
+    At worse, the discrete non-relevant variables would prevent the derivatives computation from working properly at all. 
 
     \subsection{Results}
         \begin{itemize}
