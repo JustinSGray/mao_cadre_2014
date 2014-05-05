@@ -146,7 +146,7 @@
 	If the disciplines are explicit but there is coupling among disciplines, the GSE1 equations must be used.
 	
 	A framework that automatically computes system-level total derivatives from user-provided partial derivatives for each discipline must be able to apply the most appropriate method for the situation (explicit/implicit, coupled/sequential, etc.).
-	This is greatly facilitated by a unification of derivative computation methods using a single equation from which all methods can be derived~[REF]:
+	This is greatly facilitated by a unification of derivative computation methods using a single equation from which all methods can be derived\cite{martins2013}:
 	\begin{equation}
 		\diffp[]{\bm C}{\bm v} \diff{\bm v}{\bm c} = \mathcal{\bm I} = \left. \diffp[]{\bm C}{\bm v} \right.^T \left. \diff{\bm v}{\bm c} \right.^T
 	\end{equation}
