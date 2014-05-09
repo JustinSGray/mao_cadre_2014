@@ -606,7 +606,7 @@ class ExampleComp(Component):
 
         From Fig. \ref{fig:trajectories1} it's clear that the satellite is in a polar orbit. Since the
         goal of the optimization was to maximize data downloaded, we re-ran the problem with the ground 
-        station located at McMurdo Station, Antarctica, because its position closer to the South Poll 
+        station located at McMurdo Station, Antarctica, because its position closer to the South Pole 
         provided more opportunities to transmit data. The final optimal result gave 10340 GigaBytes
         transfered, or about a 2.6X improvement. Figure \ref{fig:trajectories2} shows the ground trace 
         for this situation, clearly showing a much higher density of transmission situations. 
@@ -643,19 +643,63 @@ class ExampleComp(Component):
             Macbook Pro (2.6 Ghz Core i7 processor, 16GB 1600 Mhz DDR3 memory, running OSX 10.8.5). 
             The problem was converged to a termination tolerance of $10^{-4}$. This tolerance
             was achieved within approximately 150 iterations, using the SNOPT\cite{gill2005snopt}
-            optimizer in about 6 hours. 
+            optimizer in about 9 hours. 
 
+            \begin{figure}[!htbp]
+                \centering
+                \includegraphics[width=0.5\textwidth]{images/cadre_var_scaling}
+                \caption{Adjoint solution cost as a function of number of variables in the problem formulation.}
+                \label{fig:cadre-compute-cost}
+            \end{figure}
+
+
+            Reduction of the derivative dependency graph, as discussed in Section \ref{section:depgraph}, provides 
+            a 30\% reduction in the computational cost to compute adjoint derivatives. Figure \ref{fig:cadre-compute-cost}
+            shows a log-log plot of computational cost for 31 adjoint solves (30 constraints + 1 objective) verses the 
+            number of variables in the full problem. The trend shows linear growth for both the full and reduced
+            versions of the graph, with a constant ratio between them. This problem was scaled by 
+            refining the time discretization for the integration of ODEs in the problem. While 
+            increasing the amount of time steps taken does increase the sparsity of the individual discipline Jacobians, 
+            it does not have an impact on the sparsity of the problem formulation. In other words, although the size of the 
+            variable arrays grows, the structure of the dependency graph remains constant. Table \ref{tab:cadre-problem-sizes}
+            demonstrates the consequences of the constant problem formulation sparsity, which yields a fixed ratio between 
+            the full and reduced problem size. 
+
+            \begin{table}
+              \centering
+              \caption{Comparison between the full and reduced problem graphs for different sized small satellite design problems.}
+                \begin{tabular}{c c c}
+                    \hline
+                    Full Graph & Reduced Graph & Reduction\\
+                    \hline
+                    1.08e6 & 8.8e5 &  18\%\\ \hline
+                    2.15e6 & 1.76e6 & 18\%\\ \hline
+                    4.30e6 & 3.52e6 & 18\%\\ \hline
+                    8.60e6 & 7.05e6 & 18\%\\ \hline                    
+                    1.72e7 & 1.41e7 & 18\%\\                    
+                    \hline
+                \end{tabular}   
+                \label{tab:cadre-problem-sizes}
+            \end{table}
+
+            The 30\% reduction in computational cost for solving the gradients did not directly translate into 
+            equivalent savings in the overall optimization cost. Table \ref{tab:cadre-relevance-reduction}
+            shows the computational costs for the full and reduced problems over 150 major iterations of SNOPT. 
+            A 16.1\% reduction in overall computational cost was achieved per major iteration. The difference between 
+            the cost reduction of the gradients solves and the major iterations is accounted for by the high cost of 
+            SNOPT itself. This problem requires a large number of minor iterations, where SNOPT solves a quadratic sub-problem. 
+            The cost of solving these sub-problems is not directly affected by the cost of computing the derivatives and hence
+            reduces overall computational savings. This characteristic will be highly problem dependent, and is not expected 
+            to be so significant on all problems. 
 
             \begin{table}
                 \centering
                 \caption{Effects of relevance-based problem reduction on derivatives linear system size.}
                 \begin{tabular}{l c c c}
                     \hline
-
                                  & Full Graph & Reduced Graph & \% Reduction\\
                     \hline
-
-                    \# Variables  & 2.15e6 & 1.76e6 & 18.1\%\\ \hline
+                    \# Variables  & 2.15e6 & 1.76e6 & 18\%\\ \hline
                     \# Components & 39 & 29 & 25.6\%\\ \hline
                     \# Run Time (hours) & 8.94 & 10.68 & 16.3\%\\ 
                     \hline
@@ -663,23 +707,10 @@ class ExampleComp(Component):
                 \label{tab:cadre-relevance-reduction}
             \end{table}
 
-            Reduction of the derivative dependency graph, as discussed in
-            Section \ref{section:depgraph}, is the key to efficiency gains. Tab.~\ref{tab:cadre-relevance-reduction}
-            shows an 18.1\% reduction in the total number of variables in the linear system. This yields a 
-            reduction in the overall computational cost of solving derivatives of 16.3\%. Figure \ref{fig:cadre-compute-cost}
-            gives a more detailed view of how these cost savings are achieved by comparing compute times
-            of the first 50 iterations. Computational cost varies, but overall the non-reduced test case remains higher
-            throughout the optimization by roughly a constant percentage. 
-
-            \begin{figure}[!htbp]
-                \centering
-                \includegraphics[width=0.5\textwidth]{images/cadre_compute_cost}
-                \caption{Computational cost the first 50 iterations of the small satellite problem}
-                \label{fig:cadre-compute-cost}
-            \end{figure}
+           
 
 
-  \section{Wind Turbine Design Problem (Justin/Andrew)}
+  \section{Wind Turbine Design Problem}
 
     The goal of this design problem was to optimize a horizontal axis wind turbine to minimize the cost of energy. The problem considers the design of the rotor blades and tower from an aero-structural perspective as well as the structural requirements of the hub and nacelle.  Cost models for the turbine and wind plant are included to assess trade-offs in energy capture, capital costs and operational costs.  The analyses for this model are part of the Wind-Plant Integrated Systems Engineering \& Design Model (WISDEM) developed at National Renewable Energy Laboratory (NREL) as part of a larger effort to develop a physics and cost-based design optimization framework for wind turbines  \cite{Dykes2014a,Ning2013a,Ning2014,Ning2014d}.
 
@@ -807,25 +838,41 @@ class ExampleComp(Component):
     the continuous non-relevant variables would only make the linear solve a bit slower. 
     At worse, the discrete non-relevant variables would prevent the derivatives computation from working properly at all. 
 
-    \subsection{Results}
+    \subsection{Optimization Results}
+
+    \begin{figure}[htbp]
+      \centering
+      \includegraphics[width=0.95\textwidth]{images/wt-opt-history}
+      \caption{Objective value over the course of the optimization for the wind turbine design problem.}
+      \label{fig:wt-opt-history}
+    \end{figure}
+        
+    \subsection{Performance Results}
         \begin{itemize}
             \item FD vs analytic results
             \item speed issues without directional derivatives
         \end{itemize}
+  \section{Conclusion}
 
+      Different types of sparsity exist throughout a multidisciplinary design problem. Certain 
+      disciplines may not be relevant to all objectives/constraints, not all variables within a discipline will 
+      be relevant, and the Jacobians for any given discipline may be sparse as well. We implemented a graph-based 
+      approach to identify the sparsity in any given formulation, with a graph structure designed to allow for 
+      efficient usage even with millions of variables. We further developed a flexible API 
+      that allowed disciplines to declare their partial derivatives to OpenMDAO in a manner that 
+      takes full advantage of all kinds of sparsity. The approach was applied to two different design problems, 
+      each with unique characteristics that tested different aspects of the method. The small satellite design 
+      problem had millions of variables and used all analytic adjoint derivatives.
+      The results from that problem show the implementations scales well to large problems and demonstrated a significant 
+      computational cost benefit from taking advantage of sparsity in the problem formulation. The wind turbine design 
+      problem had a smaller design space, a more complex problem formulation, and used a combination of finite difference and analytic forward gradients. 
+      Results from this problem showed a clear advantage in terms of computational efficiency from the application of 
+      analytic derivatives, even to only some of the disciplines. In addition the results demonstrated the ability of 
+      OpenMDAO to solve highly nested problems with coupled derivatives. 
 
-  \section{Conclusion (Justin/Tristan)}
-
-      Sparsity exists at different levels of granularity throughout a multidisciplinary design problem. Certain 
-      disciplines may not be relevant to all objectives/constraints. Not all variables within a discipline will 
-      be relevant. We implemented a graph-based approach to identify the sparsity in any given formulation, with
-      a graph structure designed to allow for efficient usage even with millions of variables. We further developed a flexible API 
-      that allowed disciplines to declare their partial derivatives to OpenMDAO in a manner that takes full advantage of any sparsity 
-      found in the problem formulation. 
-
-      The approach was demonstrated on two 
-      problems with very different characteristics. The small satellite design problem had 1000's of design variables, millions of 
-      system-level variables, and used adjoint gradients. 
+      The combined results from the two design problems clearly demonstrate the value of this approach presented here. It enables 
+      the use of analytic gradients in an efficient and automatic manner regardless of the level of complexity present in the overall 
+      problem. 
 
   \bibliography{references}
 
