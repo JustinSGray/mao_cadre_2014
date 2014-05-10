@@ -838,20 +838,50 @@ class ExampleComp(Component):
     the continuous non-relevant variables would only make the linear solve a bit slower. 
     At worse, the discrete non-relevant variables would prevent the derivatives computation from working properly at all. 
 
+    \clearpage
+
     \subsection{Optimization Results}
 
-    \begin{figure}[htbp]
-      \centering
-      \includegraphics[width=0.95\textwidth]{images/wt-opt-history}
-      \caption{Objective value over the course of the optimization for the wind turbine design problem.}
-      \label{fig:wt-opt-history}
-    \end{figure}
         
     \subsection{Performance Results}
-        \begin{itemize}
-            \item FD vs analytic results
-            \item speed issues without directional derivatives
-        \end{itemize}
+        This optimization was run with both finite difference and mixed analytic/finite difference gradients. 
+        Figure \ref{fig:wt-opt-progress} compares the performance between the two cases. For this problem, 
+        finite difference performs reasonably well and achieves almost the same optimum design that the 
+        analytic gradients case achieved. However, the analytic gradients allow the optimizer to converge 
+        more quickly and more deeply. 
+
+        \begin{figure}[!htbp]
+          \centering
+          \includegraphics[width=0.95\textwidth]{images/wt_opt_progress}
+          \caption{Comparison between optimization performance and finite difference and analytic gradients.}
+          \label{fig:wt-opt-progress}
+        \end{figure}
+
+        In the mixed analytic/finite difference case, the majority of components had derivatives defined. The major 
+        exceptions were all the analyses done with PBEAM. OpenMDAO automatically handled this situation by using finite 
+        differences to approximate derivatives wherever they were missing. There are two different ways in which the framework 
+        could perform the finite differencing and their application had significant performance implications. The first method 
+        was to compute the full Jacobian via finite difference and provide it via the \textit{provideJ()} API. This solution was
+        problematic when applied to PBEAM based analyses. The fundamental issue was that these analyses had hundreds 
+        of inputs, compared to only 34 design variables at the model level. In order to construct the full Jacobian, hundreds of evaluations 
+        were needed for each analysis, which resulted in a significant computational cost when compared to the 
+        a full model finite difference. To resolve this issue, a directional finite difference was employed via the \textit{apply\_deriv()} API. 
+        Using this approach, no explicit Jacobian is ever computed, and instead the linear operator is approximated directly. 
+        Table \ref{tab:wt-fd-speeds} shows that the directional derivative approach is much faster than the full Jacobian one. 
+
+        \begin{table}
+                \centering
+                \caption{Compute time per major iteration for finite difference and the two methods of handling mixed derivatives.}
+                \begin{tabular}{l c c c}
+                    \hline
+                                 & Pure FD & \textit{provideJ()} & \textit{apply\_deriv()}\\
+                    \hline
+                    Time (sec)  & 26.3 & --- & --- \\ 
+                    \hline
+                \end{tabular}   
+                \label{tab:wt-fd-speeds}
+            \end{table}
+
   \section{Conclusion}
 
       Different types of sparsity exist throughout a multidisciplinary design problem. Certain 
