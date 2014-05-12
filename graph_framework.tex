@@ -80,7 +80,7 @@
 
   \section{Introduction}
 
-    gradient-based optimization with analytic gradients is an effective tool for solving problems
+    Gradient-based optimization with analytic gradients is an effective tool for solving problems
     with large design spaces. It has been applied widely for aerodynamic shape optimization \cite{Liou2010,palacios2012adjoint}
     and structural optimization\cite{Kennedy:2013:TACS, Venkataraman:2004:SOC, Adelman:1986:structure-sensitivity}.
     In order to apply these methods to multidisciplinary problems, system-level derivatives must be
@@ -175,7 +175,7 @@
     outside the dependency graph. Pate et al. proposed an alternative dependency graph
     structure that addressed this problem\cite{graph_problem2013}. Each discipline and each of its variables are
     represented by separate nodes with directed edges between them describing their dependencies on each other.
-    Figure \ref{fig:sellar_graph} shows a sample graph for the Sellar Problem \cite{AIAA:sellar}
+    Figure~\ref{fig:sellar_graph} shows a sample graph for the Sellar Problem \cite{AIAA:sellar}
     given in eqn. \ref{eqn:sellar_formulation}. This graph is essential for determining the set of relevant edges 
     for the gradient computation.
 
@@ -201,7 +201,7 @@
     related variables (i.e. as arrays) can be aggregated into a single node to represent the
     overall variable. If any specific sub-variable is referenced (e.g., some slice of an array) 
     then a new node is added to represent that relationship.
-    Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. Here,
+    Figure~\ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. Here,
     both outputs $A.x$ and $A.y$ are array variables. The full array $A.x$ is connected to
     $B.x$ while a single element of $A.y$ is connected to the scalar $B.z$.
 
@@ -211,7 +211,7 @@
     \end{center}\end{figure}
 
     By using the sub-variable nodes, the computational advantages of problem sparsity are retained. For example,
-    consider $\frac{\partial B.z}{\partial A.y}$ from Fig. \ref{fig:subvars}. Given the graph, we know that
+    consider $\frac{\partial B.z}{\partial A.y}$ from Fig.~\ref{fig:subvars}. Given the graph, we know that
     this derivative will be sparse, with only $A.y[2]$ having non-zero values as in eqn.  \ref{eqn:sparse_gradient}.
 
     \begin{equation}
@@ -242,7 +242,7 @@
         can handle larger problems well, it is still desirable to minimize the size of the problem 
         as much as possible. OpenMDAO is able to achieve significant reductions in the
         size of the linear system by traversing the dependency graph to find the sub-set of relevant variables.
-        For example, consider the notional graph in Fig. \ref{fig:graph2}. Considering $\frac{\partial Obj}{\partial param}$,
+        For example, consider the notional graph in Fig.~\ref{fig:graph2}. Considering $\frac{\partial Obj}{\partial param}$,
         the relevant components variables and components are highlighted. Only Components 1, 3, and 5 are needed.
         Furthermore, only $C3.a$ is needed from Component 3, because of component level sparsity. 
         This means that only four variables are needed to solve for the derivatives, 
@@ -254,7 +254,7 @@
           and 5 with their interconnecting variables. \label{fig:graph2}}
         \end{center}\end{figure}
 
-        A traversal from parameter to quantity of interest, as shown in Fig. \ref{fig:graph2}, is used when solving for 
+        A traversal from parameter to quantity of interest, as shown in Fig.~\ref{fig:graph2}, is used when solving for 
         forward derivatives. In forward mode, the traversal searches for all the variables that could possibly 
         be affected by a change in the parameter. One traversal is necessary for each design variable in the 
         problem formulation. To solve adjoint derivatives, a traversal must be made in 
@@ -354,7 +354,7 @@ class ExampleComp(Component):
         this is reasonable, but if the Jacobian has a sparse structure, it may still be wasteful to allocate memory for a
         full matrix. Furthermore, for situations like CFD, where there are millions of variables spread out
         across many CPUs, assembling the full Jacobian is simply not feasible. Lastly, depending on how
-        your problem is configured, it's possible that not all of the variables will be needed for a given problem, as in Fig. \ref{fig:graph2}. 
+        your problem is configured, it's possible that not all of the variables will be needed for a given problem, as in Fig.~\ref{fig:graph2}. 
         With \texttt{provideJ()} you still need to compute and provide the full Jacobian though some of it will be irrelevant.
         So in effect, using the \texttt{provideJ()} method can partially negate some of the benefits of problem sparsity. 
         In general these inefficiencies are small and easily outweighed by the ease of implementation. But in cases where 
@@ -432,7 +432,7 @@ class ExampleComp(Component):
         \label{fig:MDF:XDSM}
     \end{figure}
 
-    In Fig. \ref{fig:MDF:XDSM}, the optimizer varies the design variable $A.x$, a large vector.
+    In Fig.~\ref{fig:MDF:XDSM}, the optimizer varies the design variable $A.x$, a large vector.
     The MDA converges variables $y_1$ and $y_2$ from disciplines $A$ and $B$. Applying a
     Newton-based method requires $\frac{\partial A.y_1}{\partial A.y_2}$ and $\frac{\partial B.y_2}{\partial B.y_1}$
     to converge, but $\frac{\partial A.y_1}{\partial A.x}$ is not relevant. By using the linear operator derivatives method,
@@ -451,7 +451,7 @@ class ExampleComp(Component):
     by six half-days of operation, computed at conditions 1, 3, 5, 7, 9, and 11 months after launch.
 
     The objective of the optimization was to maximize the total amount of data transmitted to the ground
-    station, located in Ann Arbor, MI, over these six design points. There are seven design variables listed in Tab.~\ref{eqn:cadre_formulation}.
+    station, located in Ann Arbor, MI, over these six design points. There are seven design variables listed in Table~\ref{eqn:cadre_formulation}.
     Three of them, $\gamma$, $I_{setpt}$, and $P_{comm}$, are arrays of time varying schedules for the attitude,
     solar panel current, and communications power respectively. The remaining four, $cellInstd$, $finAngle$, $antAngle$, and $iSOC$,
     are all physical design variables of the satellite. All together there are 25,292 design variables.
@@ -499,10 +499,10 @@ class ExampleComp(Component):
     \end{figure}
 
     Overall, the problem can be broken down into seven distinct disciplines: orbit dynamics, attitude dynamics, cell illumination,
-    temperature, solar power, energy storage, and communication. Figure \ref{fig:cadre_xdsm} shows how each of the disciplines
+    temperature, solar power, energy storage, and communication. Figure~\ref{fig:cadre_xdsm} shows how each of the disciplines
     relate to each other in the optimization problem. The actual implementation of the problem further
     subdivided most of the disciplines into smaller sub-disciplines. The true component level dependency
-    graph, given in Fig. \ref{fig:cadre_graph}, has 39 different components. The full graph, including all variable and
+    graph, given in Fig.~\ref{fig:cadre_graph}, has 39 different components. The full graph, including all variable and
     sub-variable nodes, is omitted for visual clarity.
 
     From a problem structure standpoint, this problem has three significant features. Firstly, the large number of
@@ -529,7 +529,7 @@ class ExampleComp(Component):
         \end{figure}
 
 
-        Figure \ref{convergence} illustrates the convergence of the satellite problem over the course of
+        Figure~\ref{convergence} illustrates the convergence of the satellite problem over the course of
         the optimization. The top plot shows the value of the objective function, the total data downloaded. 
         The bottom plot shows the maximum value of each of the five constraints, from across all six design points.
         The objective function oscillated greatly early in the optimization while the optimizer sought a feasible 
@@ -546,7 +546,7 @@ class ExampleComp(Component):
         }
         \end{figure}
 
-        Figure \ref{pt3_data_results} shows plots of selected variables for the fourth design point,
+        Figure~\ref{pt3_data_results} shows plots of selected variables for the fourth design point,
         to illustrate the fidelity of the recovered solution. These variables are the communications
         bit rate ($D_r$), communications systems power level ($P_{comm}$), craft roll angle ($\gamma$),
         and battery charge level ($SOC$). Prior to the optimization, these variables
@@ -559,7 +559,7 @@ class ExampleComp(Component):
         three time periods. This is likely due to the battery discharge rate and SOC constraints limiting
         the power that may be delivered to the communications system.
 
-        Figure \ref{pt3_data_results} shows that the craft roll angle, $\gamma$, roughly approximates a sine function
+        Figure~\ref{pt3_data_results} shows that the craft roll angle, $\gamma$, roughly approximates a sine function
         with a wavelength of 90 minutes (the approximate orbital period of the satellite),
         with short-term perturbations during the time
         periods where line of sight is gained with the ground station. That is, the optimizer successfully
@@ -591,10 +591,10 @@ class ExampleComp(Component):
         \end{figure}
 
 
-        Figure \ref{fig:trajectories1} shows the communications bit rate along the trajectories of the
+        Figure~\ref{fig:trajectories1} shows the communications bit rate along the trajectories of the
         satellite during the fourth design point (left) and all points combined (right). 
         This can be compared directly with the data rate results in 
-        Fig. \ref{pt3_data_results}, where one large spike in communications
+        Fig.~\ref{pt3_data_results}, where one large spike in communications
         bit rate was preceded and then succeeded by two short time periods of lesser
         data rates. Plotted geographically, this is due to the procession of
         the satellites orbit, where the period of maximal data rate corresponds to a
@@ -604,11 +604,11 @@ class ExampleComp(Component):
 
        
 
-        From Fig. \ref{fig:trajectories1} it's clear that the satellite is in a polar orbit. Since the
+        From Fig.~\ref{fig:trajectories1} it's clear that the satellite is in a polar orbit. Since the
         goal of the optimization was to maximize data downloaded, we re-ran the problem with the ground 
         station located at McMurdo Station, Antarctica, because its position closer to the South Pole 
         provided more opportunities to transmit data. The final optimal result gave 10340 GigaBytes
-        transfered, or about a 2.6X improvement. Figure \ref{fig:trajectories2} shows the ground trace 
+        transfered, or about a 2.6X improvement. Figure~\ref{fig:trajectories2} shows the ground trace 
         for this situation, clearly showing a much higher density of transmission situations. 
 
         \begin{figure}[!htb]
@@ -621,7 +621,7 @@ class ExampleComp(Component):
             }
         \end{figure}
 
-        Figure \ref{fig:pt3_results_mcmurdo} provides the same selected variables as Fig. \ref{pt3_data_results}, 
+        Figure~\ref{fig:pt3_results_mcmurdo} provides the same selected variables as Fig.~\ref{pt3_data_results}, 
         for this alternative case on the fourth design point. The data shows how the optimizer is 
         able to handle the change in ground station and adjust the necessary schedules to re-optimize the 
         satellite. Notably there are now five different data transmission events compared to only three before. 
@@ -654,14 +654,14 @@ class ExampleComp(Component):
 
 
             Reduction of the derivative dependency graph, as discussed in Section \ref{section:depgraph}, provides 
-            a 30\% reduction in the computational cost to compute adjoint derivatives. Figure \ref{fig:cadre-compute-cost}
+            a 30\% reduction in the computational cost to compute adjoint derivatives. Figure~\ref{fig:cadre-compute-cost}
             shows a log-log plot of computational cost for 31 adjoint solves (30 constraints + 1 objective) verses the 
             number of variables in the full problem. The trend shows linear growth for both the full and reduced
             versions of the graph, with a constant ratio between them. This problem was scaled by 
             refining the time discretization for the integration of ODEs in the problem. While 
             increasing the amount of time steps taken does increase the sparsity of the individual discipline Jacobians, 
             it does not have an impact on the sparsity of the problem formulation. In other words, although the size of the 
-            variable arrays grows, the structure of the dependency graph remains constant. Table \ref{tab:cadre-problem-sizes}
+            variable arrays grows, the structure of the dependency graph remains constant. Table~\ref{tab:cadre-problem-sizes}
             demonstrates the consequences of the constant problem formulation sparsity, which yields a fixed ratio between 
             the full and reduced problem size. 
 
@@ -714,7 +714,7 @@ class ExampleComp(Component):
 
     The goal of this design problem was to optimize a horizontal axis wind turbine to minimize the cost of energy. The problem considers the design of the rotor blades and tower from an aero-structural perspective as well as the structural requirements of the hub and nacelle.  Cost models for the turbine and wind plant are included to assess trade-offs in energy capture, capital costs and operational costs.  The analyses for this model are part of the Wind-Plant Integrated Systems Engineering \& Design Model (WISDEM) developed at National Renewable Energy Laboratory (NREL) as part of a larger effort to develop a physics and cost-based design optimization framework for wind turbines  \cite{Dykes2014a,Ning2013a,Ning2014,Ning2014d}.
 
-    A typical problem formulation is given in Tab.~\ref{tab:coe_formulation}.  Bound constraints were chosen to be large enough to not be active, except for those that must be restricted because of manufacturing or transportation reasons.  For simplicity, safety factors are not included in the list of constraints. 
+    A typical problem formulation is given in Table~\ref{tab:coe_formulation}.  Bound constraints were chosen to be large enough to not be active, except for those that must be restricted because of manufacturing or transportation reasons.  For simplicity, safety factors are not included in the list of constraints. 
 
 
     \begin{table}
@@ -777,7 +777,7 @@ class ExampleComp(Component):
     This highly nested model structure was designed to support modularity in the model, 
     to allow a wide range of researchers to build discipline models swap and them in and out 
     of the overall model. It also greatly simplifies the complexity of the top level model, 
-    as shown in Fig. \ref{fig:wt_top_depgraph}, which is much simpler than Fig. \ref{fig:cadre_graph} 
+    as shown in Fig.~\ref{fig:wt_top_depgraph}, which is much simpler than Fig.~\ref{fig:cadre_graph} 
     which shows the small satellite problem. The presence of these sub-assemblies is important to how the derivatives are computed. 
     They are treated as a single discipline components from the perspective of the top level model. 
     This means that when derivatives are requested from the assembly, it will internally solve 
@@ -795,7 +795,7 @@ class ExampleComp(Component):
     a blade element momentum (BEM) tool specifically tailored to optimization. It includes 
     an internal convergence on the PowerCurve discipline to find the 
     rated velocity, $V_{rated}$, for the wind turbine. This convergence loop requires the Rotor 
-    sub-assembly to compute coupled derivatives. Figure \ref{fig:wt_sub_depgraph} shows the complete 
+    sub-assembly to compute coupled derivatives. Figure~\ref{fig:wt_sub_depgraph} shows the complete 
     dependency graph for the Rotor discipline, which has 26 components in total. 
 
     The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
@@ -845,7 +845,7 @@ class ExampleComp(Component):
         
     \subsection{Performance Results}
         This optimization was run with both finite difference and mixed analytic/finite difference gradients. 
-        Figure \ref{fig:wt-opt-progress} compares the performance between the two cases. For this problem, 
+        Figure~\ref{fig:wt-opt-progress} compares the performance between the two cases. For this problem, 
         finite difference performs reasonably well and achieves almost the same optimum design that the 
         analytic gradients case achieved. However, the analytic gradients allow the optimizer to converge 
         more quickly and more deeply. 
@@ -867,7 +867,7 @@ class ExampleComp(Component):
         were needed for each analysis, which resulted in a significant computational cost when compared to the 
         a full model finite difference. To resolve this issue, a directional finite difference was employed via the \textit{apply\_deriv()} API. 
         Using this approach, no explicit Jacobian is ever computed, and instead the linear operator is approximated directly. 
-        Table \ref{tab:wt-fd-speeds} shows that the directional derivative approach is much faster than the full Jacobian one. 
+        Table~\ref{tab:wt-fd-speeds} shows that the directional derivative approach is much faster than the full Jacobian one. 
 
         \begin{table}
                 \centering
@@ -876,7 +876,7 @@ class ExampleComp(Component):
                     \hline
                                  & Pure FD & \textit{provideJ()} & \textit{apply\_deriv()}\\
                     \hline
-                    Time (sec)  & 26.3 & --- & --- \\ 
+                    Time (sec)  & 26.3 & 15.0 & 5.2 \\   % TODO: made up numbers
                     \hline
                 \end{tabular}   
                 \label{tab:wt-fd-speeds}
