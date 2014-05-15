@@ -5,6 +5,9 @@ dat = 'DataInter'
 
 x = XDSM()
 x.addComp('Optimizer', 'Analysis', 'Optimizer')
+
+x.addComp('Solver', 'Analysis', 'Solver')
+
 x.addComp('rotor', opt, 'Rotor')
 x.addComp('hub', opt, 'Hub')
 x.addComp('nacelle', opt, 'Nacelle')
