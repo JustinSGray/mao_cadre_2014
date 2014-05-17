@@ -6,7 +6,7 @@ dat = 'DataInter'
 x = XDSM()
 x.addComp('Optimizer', 'Analysis', 'Optimizer')
 
-x.addComp('Solver', 'Analysis', 'Solver')
+x.addComp('solver', 'MDA', 'Solver')
 
 x.addComp('rotor', opt, 'Rotor')
 x.addComp('hub', opt, 'Hub')
@@ -19,6 +19,9 @@ x.addComp('tcc_a', opt, 'Turb. Capital Cost')
 x.addComp('bos_a', opt, 'Balance of Station')
 x.addComp('fin_a', opt, 'Financial')
 
+
+x.addDep('rotor', 'solver', dat, "$L_{blade}, precurve$")
+x.addDep('solver', 'rotor', dat, "$\Delta_{L}, \Delta_{precurve}$")
 
 x.addDep('tcc_a', 'rotor', dat, '$m_{blade}$, $P_{rated}$')
 x.addDep('tcc_a', 'hub', dat, '$m_{hub}$')
@@ -53,7 +56,7 @@ x.addDep('fin_a', 'aep_a', dat, "$AEP$")
 
 
 
-x.addDep('rotor', 'Optimizer', dat, "\TwolineComponent{3.0cm}{$c,\\theta, t_{sc}, t_{te}, \lambda_2$}{$\lambda_{max}, L_{blade}, H$}")
+x.addDep('rotor', 'Optimizer', dat, "\TwolineComponent{3.0cm}{$c,\\theta, t_{sc}, t_{te}, \lambda_2$}{$\lambda_{max}, H$}")
 x.addDep('nacelle', 'Optimizer', dat, "$L_{shaft}, h_{beam}$")
 x.addDep('tower', 'Optimizer', dat, "$d, t, z_{waist}$")
 
