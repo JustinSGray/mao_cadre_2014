@@ -815,6 +815,15 @@ component with apply\_deriv and apply\_derivT methods implemented.
     This means that when derivatives are requested from the assembly, it will internally solve 
     for its own boundary derivatives and report them to the top level assembly. 
 
+
+    \begin{figure}[!htbp]
+        \centering
+        %[Insert Sub-Assembly Dependency Graphs]
+        \includegraphics[width=0.95\textwidth]{images/rotor_depgraph}
+        \caption{Rotor sub-assembly dependency graph}
+        \label{fig:wt_sub_depgraph}
+    \end{figure}
+
     \begin{figure}[!p]
         \centering
         \includegraphics[width=0.95\textwidth]{xdsm/wt_xdsm}
@@ -851,13 +860,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
     \clearpage
 
 
-    \begin{figure}[!htbp]
-        \centering
-        %[Insert Sub-Assembly Dependency Graphs]
-        \includegraphics[width=0.95\textwidth]{images/rotor_depgraph}
-        \caption{Rotor sub-assembly dependency graph}
-        \label{fig:wt_sub_depgraph}
-    \end{figure}
+
 
 
     This problem has one additional interesting characteristic in its
@@ -884,8 +887,10 @@ component with apply\_deriv and apply\_derivT methods implemented.
         finite difference gradients. The major advantage of the analytic gradients was the improved convergence
         behavior which yielded lower overall computational time. Figure \ref{fig:wt-opt-progress} shows optimization 
         history for every function evaluation of the top level model (including any line searches performed). At any given 
-        iteration the objective function for the analytic gradients is lower than that 
-        for pure finite-difference gradients. 
+        iteration the objective function for the analytic gradients is lower than that for pure finite-difference gradients. 
+        This outcome is significant in two ways. First, it demonstrates the value obtained by applying the extra effort to 
+        derive derivatives for discipline analyses. Secondly, it proves that it is possible to achieve some benefits without 
+        defining derivatives for every single analysis. 
 
 
         \begin{table}
@@ -931,20 +936,28 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
       The approach was applied to two different design problems, each with unique characteristics that 
       tested different aspects of the method. The small satellite design problem had millions of variables and used all analytic adjoint derivatives.
-      The results from that problem reveal that the implementation scales well to large problems and a significant 
-      computational cost benefit could be obtained from taking advantage of sparsity in the problem formulation. The wind turbine design 
-      problem had a smaller design space, a significantly more complex problem formulation, and used a 
-      combination of finite-difference and analytic gradients. The problem was solved with forward gradients because it had more constraints than design variables.
+      This problem would have been very difficult to solve without analytic derivatives because of its large design spaces, however assembling the 
+      system level derivatives would have been challenging to do by hand thanks to the large number of analyses involved. 
+      The results from the optimization of the small satellite reveal that the implementation scales well with increasing 
+      number of variables and a significant computational cost benefit was obtained by taking advantage of 
+      sparsity in the problem formulation. 
+
+      The wind turbine design problem had a smaller design space, a significantly more complex problem formulation, and used a 
+      combination of finite-difference and analytic gradients. The problem was solved with forward gradients because 
+      it had more constraints than design variables. The optimization results demonstrated OpenMDAO's ability
+      to solve highly nested problems with coupled derivatives. In addition, they showed a gain in computational efficiency 
+      by applying analytic derivatives, even though some major analyses still required finite-differencing. This demonstrates the 
+      flexibility of the OpenMDAO framework, and indicates that it could be effective at assembling system level optimizations. 
+
       Results from this problem showed a clear computational efficiency gain by applying
-      analytic derivatives, even though some major analyses still required finite-differencing. In addition, the results demonstrated OpenMDAO's ability
-      to solve highly nested problems with coupled derivatives. 
+      analytic derivatives, even though some major analyses still required finite-differencing.
 
       The combined results from the two design problems clearly demonstrate the value of the approach presented here: it enables 
       the use of analytic gradients in an efficient and automatic manner regardless of the level of complexity present in the overall 
       problem. 
 
 
-  \section{Acknowledgements}
+  \section{Acknowledgments}
 
       This work was supported by the NASA Fundamental Aeronautics Program, Aeronautical Sciences Project. 
       The authors would like to thank Dae Young Lee and Prof. James W. Cutler from the University of Michigan 
