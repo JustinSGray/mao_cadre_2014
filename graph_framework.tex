@@ -206,25 +206,29 @@
       \caption{ Dependency graph for the Sellar problem. \label{fig:sellar_graph}}
     \end{center}\end{figure}
 
-    In Pate et al.'s graph syntax, a single node is given for every variable. This graph contains all the
-    information needed to take full advantage of problem sparsity but suffers from one potential
+    In Pate et al.'s graph syntax, a single node is given for every variable, and two nodes are given 
+    for each discipline analysis. The dual discipline nodes were prescribed in order to create an edge 
+    that could be assigned a weight in case weighted graph traversal algorithms were desired. However, 
+    they acknowledge that the dual nodes are often unnecessary and could be avoided for the sake of simplicity. 
+    This graph contains all the information needed to take full advantage of problem sparsity but suffers from one potential
     weakness. For a problem with millions of  variables, like the small satellite design problem,
     the graph would get very large and would be inefficient to operate on. To address this issue,
     related variables (i.e., arrays) can be aggregated into a single node to represent the
-    overall variable. If any specific sub-variable is referenced (e.g., some slice of an array) 
+    overall variable. For problems with large arrays, this modification results in a significant reduction
+    in the overall size of the graph. If any specific subvariable is referenced (e.g., some slice of an array) 
     then a new node is added to represent that relationship.
-    Figure \ref{fig:subvars} shows how the sub-variable nodes relate to their parent variables. Here,
+    Figure \ref{fig:subvars} shows how subvariable nodes relate to their parent variables. Here,
     both outputs $A.x$ and $A.y$ are array variables. The full array $A.x$ is connected to
-    $B.x$ while a single element of $A.y$ is connected to the scalar $B.z$.
+    $B.x$ while a single element of $A.y$ is connected to the scalar $B.y$. 
 
     \begin{figure}[!htb]\begin{center}
       \includegraphics[width=.8\textwidth]{images/sub-var-node-graph}
       \caption{ Example graph with child nodes for subvariables. \label{fig:subvars}}
     \end{center}\end{figure}
 
-    By using the sub-variable nodes, the computational advantages of problem sparsity are retained. For example,
+    By using the subvariable nodes, the computational advantages of problem sparsity are retained. For example,
     consider $\frac{\partial B.z}{\partial A.y}$ from Fig. \ref{fig:subvars}. Given the graph, we know that
-    this derivative will be sparse, with only $A.y[2]$ having nonzero values as in Eq.  \ref{eqn:sparse_gradient}.
+    this gradient will be sparse, with only the element relating to $A.y[2]$ having nonzero values as in Eq.  \ref{eqn:sparse_gradient}.
 
     \begin{equation}
         \frac{\partial B.z}{\partial A.y} =
@@ -238,8 +242,8 @@
         \label{eqn:sparse_gradient}
     \end{equation}
 
-    When solving for derivatives, without the subvariable node, all the
-    elements of the $A.y$ array must be included in the linear system for derivatives calculations.
+    Because of the variable aggregation, solving for derivatives without the subvariable node would require 
+    all the elements of the $A.y$ array to be included in the linear system.
     With the subvariable node, only the single relevant value from the array needs to be included.
     By representing hierarchical data as a single node, the overall size of the graph
     remains manageable, and the subvariable nodes are used to preserve the benefits of sparsity.
@@ -273,8 +277,6 @@
         the opposite direction. To do this, simply reverse all of the edges in the dependency graph and 
         perform one traversal from each quantity of interest to all possible parameters. 
         
-
-
     \subsection{Cycle Detection and Usage}
         Pate et al. stated that within a dependency graph, the presence of cycles indicates coupling between
         the components in the cycle \cite{graph_problem2013}. Cycles can be induced by connections
