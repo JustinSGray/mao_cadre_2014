@@ -258,14 +258,14 @@
         can handle larger problems well, it is still desirable to minimize the size of the problem 
         as much as possible. OpenMDAO is able to achieve significant reductions in the
         size of the linear system by traversing the dependency graph to find the subset of relevant variables.
-        For example, consider the notional graph in Fig. \ref{fig:graph2}. Considering $\frac{\partial Obj}{\partial param}$,
+        For example, consider the notional graph in Fig. \ref{fig:graph2}. Considering $\frac{\partial C5.y}{\partial C1.x}$,
         the relevant components variables and components are highlighted. Only components 1, 3, and 5 are needed.
         Furthermore, only $C3.a$ is needed from component 3, because of component-level sparsity. 
         This means that only four variables are needed to solve for the derivatives, 
-        instead of seven if reduce the graph is not reduced. 
+        instead of seven if the graph is not reduced. 
 
         \begin{figure}[!htb]\begin{center}
-          \includegraphics[width=.8\textwidth]{images/Graph2}
+          \includegraphics[width=.8\textwidth]{images/relevant-path-graph}
           \caption{ The reduced graph for the derivatives calculation includes components 1, 3,
           and 5 with their interconnecting variables. \label{fig:graph2}}
         \end{center}\end{figure}
