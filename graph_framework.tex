@@ -93,7 +93,7 @@
 
   \section{Introduction}
 
-    gradient-based optimization with analytic gradients is an effective tool for solving problems
+    Gradient-based optimization with analytic gradients is an effective tool for solving problems
     with large design spaces. It has been applied widely for aerodynamic shape optimization \cite{Liou2010,palacios2012adjoint}
     and structural optimization\cite{Kennedy:2013:TACS, Venkataraman:2004:SOC, Adelman:1986:structure-sensitivity}.
     In order to apply these methods to multidisciplinary problems, system-level derivatives must be
@@ -218,7 +218,7 @@
     $B.x$ while a single element of $A.y$ is connected to the scalar $B.z$.
 
     \begin{figure}[!htb]\begin{center}
-      \includegraphics[width=.8\textwidth]{images/Graph1}
+      \includegraphics[width=.8\textwidth]{images/sub-var-node-graph}
       \caption{ Example graph with child nodes for subvariables. \label{fig:subvars}}
     \end{center}\end{figure}
 
@@ -940,21 +940,17 @@ component with apply\_deriv and apply\_derivT methods implemented.
       system level derivatives would have been challenging to do by hand thanks to the large number of analyses involved. 
       The results from the optimization of the small satellite reveal that the implementation scales well with increasing 
       number of variables and a significant computational cost benefit was obtained by taking advantage of 
-      sparsity in the problem formulation. 
+      sparsity in the problem formulation. The wind turbine design problem had a smaller design space, a 
+      significantly more complex problem formulation, and used a combination of finite-difference and analytic 
+      gradients. The problem was solved with forward gradients because it had more constraints than design variables. 
+      The optimization results demonstrated OpenMDAO's ability to solve highly nested problems with coupled derivatives.
+      In addition, they showed a gain in computational efficiency by applying analytic derivatives, even though some major 
+      analyses still required finite-differencing. 
 
-      The wind turbine design problem had a smaller design space, a significantly more complex problem formulation, and used a 
-      combination of finite-difference and analytic gradients. The problem was solved with forward gradients because 
-      it had more constraints than design variables. The optimization results demonstrated OpenMDAO's ability
-      to solve highly nested problems with coupled derivatives. In addition, they showed a gain in computational efficiency 
-      by applying analytic derivatives, even though some major analyses still required finite-differencing. This demonstrates the 
-      flexibility of the OpenMDAO framework, and indicates that it could be effective at assembling system level optimizations. 
-
-      Results from this problem showed a clear computational efficiency gain by applying
-      analytic derivatives, even though some major analyses still required finite-differencing.
-
-      The combined results from the two design problems clearly demonstrate the value of the approach presented here: it enables 
-      the use of analytic gradients in an efficient and automatic manner regardless of the level of complexity present in the overall 
-      problem. 
+      The combined results from the two design problems clearly demonstrate the value of the approach presented here: efficient and 
+      automatic computation of system level derivatives, given partial derivatives from the discipline analyses 
+      even for very large problems. It also allows analyses with and without analytic derivatives to be used effectively 
+      within the same model. 
 
 
   \section{Acknowledgments}
