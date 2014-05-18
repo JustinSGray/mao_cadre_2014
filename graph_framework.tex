@@ -56,6 +56,7 @@
 \usepackage[superscript]{cite}
 \usepackage{esdiff}
 \usepackage{bm}
+\usepackage{booktabs}
 
 \lstset{frame=single}
 \newcommand{\txt}{\textrm}
@@ -735,26 +736,20 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
   \section{Wind Turbine Design Problem}
 
-    The goal of this design problem was to optimize a horizontal axis wind turbine to minimize the cost of energy. 
-    The problem includes the design of the rotor blades and tower with a coupled aero-structural analysis as well as 
-    the structural requirements of the hub and nacelle.  Cost models for the turbine and wind plant are included 
-    to assess trade-offs in energy capture, capital costs and operational costs.  The analyses for this model are 
-    part of the Wind-Plant Integrated Systems Engineering \& Design Model (WISDEM) developed at National Renewable 
-    Energy Laboratory (NREL) as part of a larger effort to develop a physics and cost-based design optimization 
+    The goal of this design problem was to optimize a horizontal-axis wind turbine to minimize the cost of energy at a land-based site. The problem includes the design of the rotor blades with a coupled aero-structural analysis as well as the structural design of the hub, nacelle, and tower.  Cost models for the turbine and wind plant are included 
+    to assess trade-offs in energy capture, capital costs, and operational costs.  The analyses for this model are 
+    part of the Wind-Plant Integrated Systems Design \& Engineering Model (WISDEM) developed at the National Renewable Energy Laboratory as part of a larger effort to develop a physics- and cost-based design optimization 
     framework for wind turbines  \cite{Dykes2014a,Ning2013a,Ning2014,Ning2014d}.
 
-    A typical problem formulation is given in Tab.~\ref{tab:coe_formulation}.  Bound constraints were chosen to be 
-    large enough to not be active, except for those that must be restricted because of manufacturing or 
-    transportation reasons.  For simplicity, safety factors are not included in the list of constraints. 
-
+    Wind turbine design involves a large number of structural constraints specified by various standards.  This optimization problem utilizes a subset of the design requirements specified by the International Electrotechnical Commission for land-based designs \cite{IEC}.  Structural considerations include maximum deflections, stress and strain limits, resonance, buckling, and manufacturing considerations.   A typical problem formulation is given in Tab.~\ref{tab:coe_formulation}.  Bound constraints were chosen to be large enough to not be active, except for those that must be restricted because of manufacturing or transportation reasons.  For simplicity, safety factors are not included in the list of constraints. 
 
     \begin{table}
         \centering
-        \caption{Horizontal axis wind turbine optimization problem description.}
+        \caption{Horizontal-axis wind turbine optimization problem description}
         \begin{tabular}{r l l l}
-            \hline
+            \toprule
             & Variable/function & Description & Quantity \\
-            \hline
+            \midrule
             minimize            & $COE$ & Cost of energy \\
             \\
             with respect to & $0.4 \le c \le 20$ & Chord distribution & $5$ \\
@@ -762,47 +757,41 @@ component with apply\_deriv and apply\_derivT methods implemented.
                                     & $0.005 \le t_{sc} \le 0.2$ & Spar-cap thickness distribution & $5$ \\
                                     & $0.005 \le t_{te} \le 0.2$ & Trailing-edge panel distribution & $5$ \\
                                     & $3 \le \lambda \le 14$ & Tip-speed ratio in Region 2 & $1$ \\
-                                    & $10 \le \lambda \le 80$ & Max Tip Speed & $1$ \\
                                     & $40 \le L_{blade} \le 100$ & Blade length & $1$ \\
-                                    & $0.1 \le L_{shaft} \le 10$ & Low speed shaft lengths & $2$ \\
+                                    & $0.1 \le L_{shaft} \le 10$ & Low-speed-shaft lengths & $2$ \\
                                     & $0.01 \le h_{beam} \le 10$ & Bedplate I-beam sizing & $2$ \\
                                     & $3.87 \le d \le 20$ & Tower diameter & $3$ \\
                                     & $0.005 \le t \le 0.2$ & Tower wall thickness & $3$ \\
                                     & $0.25 \le z_{waist} \le 0.75$ & Tower waist location & $1$ \\
                                     & $50 \le H \le 200$ & Tower height & $1$ \\
-                                    & & Total & $34$ \\
+                                    & & Total & $33$ \\
 
             \\
             subject to          & $\delta_{tip} \le \delta_{max}$ & Blade tower strike & $1$ \\
                                     & $\delta_{ground} \ge \delta_{min}$ & Blade ground clearance & $1$ \\
                                     & $\epsilon \le \epsilon_{ult}$ & Ultimate strain in blades & $24$ \\
                                     & $\epsilon \le \epsilon_{cr}$ & Panel buckling in blades & $14$ \\
-                                    & $damage \le 1$ & Fatigue damage in blades & $10$ \\
                                     & $\delta_{lss} \le \delta_{max}$ & Deflection limits in low-speed shaft & $4$ \\
                                     & $\delta_{bdp} \le \delta_{max}$ & Deflection limits in bedplate & $2$ \\
                                     & $\sigma_{bdp} \le \sigma_{ult}$ & Ultimate stress in bedplate & $2$ \\
                                     & $\sigma_{twr} \le \sigma_{ult}$ & Ultimate stress in tower & $14$ \\
                                     & $\sigma_{twr} \le \sigma_{shell}$ & Shell buckling in tower & $14$ \\
                                     & $\sigma_{twr} \le \sigma_{global}$ & Global buckling in tower & $14$ \\
-                                    & $damage \le 1$ & Fatigue damage in tower & $9$ \\
                                     & $f \ge \Omega_{rotor}$ & Tower resonance avoidance & $1$ \\
                                     & $d/t \ge 120$ & Weldability & $1$ \\
                                     & $d_{top}/d_{base} > 0.4$ & Manufacturability & $1$ \\
-                                    & & Total & $112$ \\
-            \hline
+                                    & & Total & $93$ \\
+            \bottomrule
         \end{tabular}
         \label{tab:coe_formulation}
     \end{table}
 
 
-    There are 34 design variables, 1 objective, and 112 constraints. Since there are
+    There are 33 design variables, 1 objective, and 93 constraints. An additional maximum tip-speed constraint of 80 m/s is imposed directly in the analysis.  Since there are
     fewer design variables than quantities of interest, the problem was solved with
     forward derivatives. In addition, the relatively small size of the design space
     enabled a comparison between the use of analytic and finite-difference gradients. There were 10 disciplines 
-    involved in the top level of the model, as seen in Fig.~\ref{fig:xdsm_wt}. The aero-structural coupling 
-    is achieved through a fixed point iteration around the rotor discipline, converging the blade length and 
-    initial curvature to a tolerance of $1e-6$. OpenMDAO automatically computes the coupled derivatives around 
-    this convergence loop. 
+    involved in the top level of the model, as seen in Fig.~\ref{fig:xdsm_wt}.  Half of these disciplines represented the physics of the problem, aerodynamic and structural models of the turbine components, while the other half encapsulated the various cost components.  The aero-structural coupling was achieved through a fixed point iteration around the rotor discipline, converging the deflected blade shape to a tolerance of $1\times10^{-8}$. OpenMDAO automatically computes the coupled derivatives around this convergence loop. 
 
     Similar to the small satellite design problem, many of the disciplines were further
     sub-divided into more than one component for implementation. In the
@@ -810,10 +799,10 @@ component with apply\_deriv and apply\_derivT methods implemented.
     actual sub-assemblies of components were made. Rotor, Hub, Nacelle, Tower, Turbine Capital Cost, 
     and Balance of Station were all sub-assemblies. 
     This highly nested model structure was designed to support modularity in the model, 
-    to allow a wide range of researchers to build discipline models swap and them in and out 
+    to allow a wide range of researchers to build discipline models and swap them in and out 
     of the overall model. It also greatly simplifies the complexity of the top level model. 
     The presence of these sub-assemblies is relevant to how the derivatives are computed. 
-    They are treated as a single discipline components from the perspective of the top level model. 
+    They are treated as a single discipline component from the perspective of the top level model. 
     This means that when derivatives are requested from the assembly, it will internally solve 
     for its own boundary derivatives and report them to the top level assembly. 
 
@@ -836,10 +825,10 @@ component with apply\_deriv and apply\_derivT methods implemented.
     The Rotor discipline in particular has an important internal feature with regard to computing derivatives. 
     The rotor sub-assembly is responsible for modeling aerodynamics, using CCBlade\cite{NING:BEM}, 
     a blade element momentum (BEM) tool specifically tailored to optimization. It includes 
-    an internal convergence on the PowerCurve discipline, with a brent solver, to find the 
-    rated velocity, $V_{rated}$, for the wind turbine. This convergence loop requires the Rotor 
+    an internal convergence on the PowerCurve discipline, with a Brent solver \cite{Brent1971}, to find the 
+    rated speed, $V_{rated}$, for the wind turbine. This convergence loop requires the Rotor 
     sub-assembly to compute coupled derivatives. Figure \ref{fig:wt_sub_depgraph} shows the complete 
-    dependency graph for the Rotor discipline, which has 26 components in total. 
+    dependency graph for just the Rotor discipline, which has 26 components in total.  The internal solver used to find rated speed is highlighted with a box in the figure. 
 
     The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
     a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for
@@ -848,7 +837,9 @@ component with apply\_deriv and apply\_derivT methods implemented.
     Tower structures was modeled with pBEAM and additional modules for shell buckling,
     global buckling, and fatigue.  Some drivetrain components were modeled with scaling
     relationships (bearings, yaw system, generator), while others used bottom-up physics
-    models (bedplate, gearbox, low-speed shaft). 
+    models (bedplate, gearbox, low-speed shaft).
+
+    Analytic gradients were derived for all aerodynamic components, cost components, and many of the structural components using a mixture of hand-derivation and automatic differentiation.  Some of the remaining structural components (pBEAM and PreComp) did not yet provide analytic gradients.  For these components, the output was still continuously differentiable, and their Jacobians were estimated with finite differencing.  This led to a mixed derivative scenario where analytic Jacobians and the finite difference Jacobians were used together to solve for system-level derivatives.
 
 
     % \begin{figure}[!htbp]
@@ -859,7 +850,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
     %     \label{fig:wt_top_depgraph}
     % \end{figure}
 
-    \clearpage
+    % \clearpage
 
 
 
@@ -881,31 +872,60 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
     \subsection{Optimization Results}
 
+    The baseline design for this problem is the NREL 5-MW reference model \cite{Jonkman2009}, with a blade structural layup definition from Sandia National Laboratories \cite{Resor2013}.  The baseline model was not designed to be optimal in any sense, but is instead useful as a nominal reference configuration.  
+
+    A high-level summary of wind turbine component masses, energy production, and plant costs are summarized in Table \ref{tab:wind_results}.  The energy capture is quantified by the annual energy production (AEP).  Plant costs include turbine capital costs (TCC), balance-of-station costs (BOS), and operating expenses (OPEX).  The cost of energy is computed as
+    \begin{equation}
+    COE = \frac {FR (TCC + BOS) + (1-T) OPEX} {AEP}
+    \end{equation}
+    where FR is the financing rate, and T is the tax deduction rate on operating expenses.
+
+    \begin{table}[htb]
+    \centering
+    \caption{Comparison between component masses, energy production, and plant costs for the baseline design and a minimum cost of energy design.}
+    \label{tab:wind_results}
+    \begin{tabular}{@{}lrr@{}}
+    \toprule
+     &  Baseline & Optimized  \\
+    \midrule
+    blade mass (kg) & 17,303 & 12,829  \\
+    hub mass (kg) & 42,126 & 38,170  \\
+    nacelle mass (kg) & 208,748 & 208,435  \\
+    tower mass (kg) & 349,649 & 336,564  \\
+    AEP (MWh/turbine) &  19,579 & 20,146  \\
+    TCC (\$/kW) &  1,698 & 1,581  \\
+    BOS (\$/kW) &  558 & 561  \\
+    OPEX (cents/kWh) &  1.22 & 1.21  \\
+    COE (cents/kWh) &  6.20 & 5.78  \\
+    \bottomrule
+    \end{tabular}
+    \end{table}
+
+      The baseline design has significant structural margins in both the blade and the tower.  In this case the optimization pushes towards a lower solidity blade, saving mass, and correspondingly operates at a higher tip-speed ratio (tip-speed ratio increase from 7.55 to 8.49).  The solidity and spar-cap stiffness is sized primarily by the out-of-plane tower strike requirement.  Trailing-edge panels are sized primarily by maximum strain and buckling requirements at 50-year survival load conditions.
+
+      While the final tower design has a similar mass, it is significantly taller in order to increase power capture (hub height increase from 90 m to 109 m).  Because of the large design margins for the baseline design, the tower is able to increase in height without large mass penalties by using a larger base diameter and thinner shell sections.  The tower design is sized primarily by shell buckling at maximum thrust load conditions.
+
+      The changes in the drivetrain and nacelle are more subtle, resulting in a similar mass.  Overall, the mass reductions allow for about 7\% savings in turbine capital costs.  Simultaneously, the larger hub height, and more efficient blades increase the annual energy production by almost 3\%.  The net effect is a reduction in cost of energy of over 6.5\%.
         
     \subsection{Performance Results}
-        This optimization was run with both finite-difference and mixed analytic/finite-difference gradients. 
-        For this problem, finite-difference performs reasonably well and achieves almost the same optimum design that the 
-        analytic gradients case achieved. For both cases, a relative step size of $1e-3$ was used for all 
+        This optimization was run with both finite-difference and mixed analytic/finite-difference gradients.  The problem was converged to a termination tolerance of $5\times10^{-5}$ using SNOPT.  For this problem, finite-difference performs reasonably well and achieves almost the same optimum design that the analytic gradients case achieved. For both cases, a relative step size of $1\times10^{-3}$ was used for all 
         finite difference gradients. The major advantage of the analytic gradients was the improved convergence
-        behavior which yielded lower overall computational time. Figure \ref{fig:wt-opt-progress} shows optimization 
-        history for every function evaluation of the top level model (including any line searches performed). At any given 
-        iteration the objective function for the analytic gradients is lower than that for pure finite-difference gradients. 
-        This outcome is significant in two ways. First, it demonstrates the value obtained by applying the extra effort to 
-        derive derivatives for discipline analyses. Secondly, it proves that it is possible to achieve some benefits without 
-        defining derivatives for every single analysis. 
+        behavior which yielded lower overall computational time.  Figure \ref{fig:wt-opt-progress} shows optimization 
+        history for every function evaluation of the top level model (including any line searches performed). At any given iteration the objective function for the analytic gradients is lower than that for pure finite-difference gradients. This outcome is significant in two ways. First, it demonstrates the value obtained by applying the extra effort to derive derivatives for discipline analyses. Secondly, it proves that it is possible to achieve some benefits without defining derivatives for every single analysis. While outside the scope of this paper, a wide range of variations on this optimization problem have been performed, and the use of the analytic gradients has shown to also be beneficial not only in terms of speed, but also in terms of solution robustness and quality.  
+
 
 
         \begin{table}
             \centering
-            \caption{Comparison of the results between the finite-difference and analytic derivatives.}
-            \begin{tabular}{l c c}
-                \hline
+            \caption{Comparison of the results between the finite-difference and analytic derivatives}
+            \begin{tabular}{lrr}
+                \toprule
                              & Finite-difference & Analytic \\
-                \hline
-                COE $\left(\frac{\cent}{kWh}\right)$         & 5.776  & 5.775 \\  \hline
-                Norm(constraints)                    & $3.91*10^{-5}$ & $2.40*10^{-5}$  \\  \hline
+                \midrule
+                Objective (COE  in $\cent$/kWh)         & 5.776  & 5.775 \\  \hline
+                $||$Constraints$||_2$                  & $3.91\times10^{-5}$ & $2.40\times10^{-5}$  \\  \hline
                 \# Major Iterations                   &  104 & 68  \\ 
-                \hline
+                \bottomrule
             \end{tabular}   
             \label{tab:wt-fd-speeds}
         \end{table}
@@ -918,10 +938,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
           \label{fig:wt-opt-progress}
         \end{figure}
 
-        In the mixed analytic/finite-difference case, the majority of components had derivatives defined. The major 
-        exception was all the analyses done with pBEAM. OpenMDAO automatically handled this situation by using finite-difference 
-        to approximate the Jacobian of any pBEAM analyses and then using that Jacobian in conjunction with all the other 
-        analytic partial derivatives to solve for system level derivatives. 
+        
         
 
   \section{Conclusion}
@@ -959,7 +976,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
       This work was supported by the NASA Fundamental Aeronautics Program, Aeronautical Sciences Project. 
       The authors would like to thank Dae Young Lee and Prof. James W. Cutler from the University of Michigan 
-      for contributing to development the analyses used in the small satellite design problem. 
+      for contributing to the development of the analyses used in the small satellite design problem.  The authors also gratefully acknowledge the contributions of Katherine Dykes, Yi Guo, and Ryan King from the National Renewable Energy Laboratory for their development efforts on the wind turbine nacelle and cost models.
 
   \bibliography{references}
 
