@@ -61,10 +61,10 @@ x.addDep('nacelle', 'Optimizer', dat, "$L_{shaft}, h_{beam}$")
 x.addDep('tower', 'Optimizer', dat, "$d, t, z_{waist}$")
 
 
-x.addDep('Optimizer', 'rotor', dat, "\TwolineComponent{2.8cm}{$\\delta_{rotor}, \epsilon, \Omega, \epsilon^*_{rotor}$}{$damage_{rotor}$}")
+x.addDep('Optimizer', 'rotor', dat, r"$\delta_{rotor}, \epsilon, \Omega, \epsilon^*_{rotor}$")
 x.addDep('Optimizer', 'nacelle', dat, "$\\sigma_{nacelle}, \epsilon, \\theta_{lss}$")
 x.addDep('Optimizer', 'deflection', dat, "$\\delta_{max}$")
-x.addDep('Optimizer', 'tower', dat, "\TwolineComponent{3.0cm}{$d_{top}, d_{base}, \sigma_{tower}$}{$\sigma^*_{tower}, damage_{tower}$}")
+x.addDep('Optimizer', 'tower', dat, "\TwolineComponent{3.0cm}{$d_{top}, d_{base}, $}{$ \sigma_{tower}, \sigma^*_{tower}$}")
 x.addDep('Optimizer', 'fin_a', dat, "$COE$")
 
 

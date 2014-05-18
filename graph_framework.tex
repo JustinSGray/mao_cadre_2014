@@ -97,7 +97,7 @@
     Gradient-based optimization with analytic gradients is an effective tool for solving problems
     with large design spaces. It has been applied widely for aerodynamic shape optimization \cite{Liou2010,palacios2012adjoint}
     and structural optimization\cite{Kennedy:2013:TACS, Venkataraman:2004:SOC, Adelman:1986:structure-sensitivity}.
-    In order to apply these methods to multidisciplinary problems, system-level derivatives must be
+    To apply these methods to multidisciplinary problems, system-level derivatives must be
     constructed by combining the partial derivatives from each discipline using the Global Sensitivity
     Equations\cite{Sobieski1990} (GSE). This technique is commonly applied to coupled
     aero-structural design optimization of aircraft wings\cite{Kenway2012c, Haghighat2012} and is applicable to
@@ -489,9 +489,9 @@ component with apply\_deriv and apply\_derivT methods implemented.
         \centering
         \caption{Small satellite design problem formulation.}
         \begin{tabular}{r l l l}
-            \hline
+            \toprule
             & Variable/Function & Description & Quantity \\
-            \hline
+            \midrule
             maximize            & $\sum_{i=1}^6 D_i$ & Data downloaded \\
             \\
             with respect to & $0 \le I_\text{setpt} \le 0.4$ & Solar panel current & $300 \times 12 \times 6$ \\
@@ -509,7 +509,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
                                     & $SOC - 1 \le 0$ & Battery capacity constraint & $6$ \\
                                     & $fSOC - iSOC = 0$ & SOC periodicity constraint & $6$ \\
                                     & & Total & $30$ \\
-            \hline
+            \bottomrule
         \end{tabular}
         
         \label{eqn:cadre_formulation}
@@ -693,15 +693,15 @@ component with apply\_deriv and apply\_derivT methods implemented.
               \centering
               \caption{Comparison between the full and reduced problem graphs for different-sized small satellite design problems}
                 \begin{tabular}{c c c}
-                    \hline
+                    \toprule
                     Full Graph & Reduced Graph & Reduction\\
-                    \hline
-                    1.08e6 & 8.8e5 &  18\%\\ \hline
-                    2.15e6 & 1.76e6 & 18\%\\ \hline
-                    4.30e6 & 3.52e6 & 18\%\\ \hline
-                    8.60e6 & 7.05e6 & 18\%\\ \hline                    
+                    \midrule
+                    1.08e6 & 8.8e5 &  18\%\\ 
+                    2.15e6 & 1.76e6 & 18\%\\ 
+                    4.30e6 & 3.52e6 & 18\%\\ 
+                    8.60e6 & 7.05e6 & 18\%\\                     
                     1.72e7 & 1.41e7 & 18\%\\                    
-                    \hline
+                    \bottomrule
                 \end{tabular}   
                 \label{tab:cadre-problem-sizes}
             \end{table}
@@ -720,13 +720,13 @@ component with apply\_deriv and apply\_derivT methods implemented.
                 \centering
                 \caption{Effects of relevance-based problem reduction on derivatives linear system size}
                 \begin{tabular}{l c c c}
-                    \hline
+                    \toprule
                                  & Full Graph & Reduced Graph & \% Reduction\\
-                    \hline
-                    \# Variables  & 2.15e6 & 1.76e6 & 18\%\\ \hline
-                    \# Components & 39 & 29 & 25.6\%\\ \hline
+                    \midrule
+                    \# Variables  & 2.15e6 & 1.76e6 & 18\%\\ 
+                    \# Components & 39 & 29 & 25.6\%\\ 
                     \# Run Time (hours) & 8.94 & 10.68 & 16.3\%\\ 
-                    \hline
+                    \bottomrule
                 \end{tabular}   
                 \label{tab:cadre-relevance-reduction}
             \end{table}
@@ -736,10 +736,14 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
   \section{Wind Turbine Design Problem}
 
-    The goal of this design problem was to optimize a horizontal-axis wind turbine to minimize the cost of energy at a land-based site. The problem includes the design of the rotor blades with a coupled aero-structural analysis as well as the structural design of the hub, nacelle, and tower.  Cost models for the turbine and wind plant are included 
-    to assess trade-offs in energy capture, capital costs, and operational costs.  The analyses for this model are 
-    part of the Wind-Plant Integrated Systems Design \& Engineering Model (WISDEM) developed at the National Renewable Energy Laboratory as part of a larger effort to develop a physics- and cost-based design optimization 
-    framework for wind turbines  \cite{Dykes2014a,Ning2013a,Ning2014,Ning2014d}.
+    The goal of this design problem was to optimize a horizontal-axis wind turbine to minimize 
+    the cost of energy at a land-based site. The problem includes the design of the rotor blades 
+    with a coupled aero-structural analysis as well as the structural design of the hub, nacelle, 
+    and tower.  Cost models for the turbine and wind plant are included 
+    to assess trade-offs in energy capture and capital and operational costs.  The analyses 
+    for this model are part of the Wind-Plant Integrated Systems Design \& Engineering Model 
+    developed at the National Renewable Energy Laboratory (NREL) as part of a larger effort 
+    to develop a physics- and cost-based design optimization framework for wind turbines  \cite{Dykes2014a,Ning2013a,Ning2014,Ning2014d}.
 
     Wind turbine design involves a large number of structural constraints specified by various standards.  This optimization problem utilizes a subset of the design requirements specified by the International Electrotechnical Commission for land-based designs \cite{IEC}.  Structural considerations include maximum deflections, stress and strain limits, resonance, buckling, and manufacturing considerations.   A typical problem formulation is given in Tab.~\ref{tab:coe_formulation}.  Bound constraints were chosen to be large enough to not be active, except for those that must be restricted because of manufacturing or transportation reasons.  For simplicity, safety factors are not included in the list of constraints. 
 
@@ -787,23 +791,23 @@ component with apply\_deriv and apply\_derivT methods implemented.
     \end{table}
 
 
-    There are 33 design variables, 1 objective, and 93 constraints. An additional maximum tip-speed constraint of 80 m/s is imposed directly in the analysis.  Since there are
+    There are 33 design variables, 1 objective, and 93 constraints. An additional maximum tip-speed constraint of 
+    80 m/s is imposed directly in the analysis.  Because there are
     fewer design variables than quantities of interest, the problem was solved with
     forward derivatives. In addition, the relatively small size of the design space
     enabled a comparison between the use of analytic and finite-difference gradients. There were 10 disciplines 
     involved in the top level of the model, as seen in Fig.~\ref{fig:xdsm_wt}.  Half of these disciplines represented the physics of the problem, aerodynamic and structural models of the turbine components, while the other half encapsulated the various cost components.  The aero-structural coupling was achieved through a fixed point iteration around the rotor discipline, converging the deflected blade shape to a tolerance of $1\times10^{-8}$. OpenMDAO automatically computes the coupled derivatives around this convergence loop. 
 
     Similar to the small satellite design problem, many of the disciplines were further
-    sub-divided into more than one component for implementation. In the
+    subdivided into more than one component for implementation. In the
     satellite problem, all components were left at the same level in the model, but for this problem 
-    actual sub-assemblies of components were made. Rotor, Hub, Nacelle, Tower, Turbine Capital Cost, 
-    and Balance of Station were all sub-assemblies. 
-    This highly nested model structure was designed to support modularity in the model, 
-    to allow a wide range of researchers to build discipline models and swap them in and out 
-    of the overall model. It also greatly simplifies the complexity of the top level model. 
-    The presence of these sub-assemblies is relevant to how the derivatives are computed. 
-    They are treated as a single discipline component from the perspective of the top level model. 
-    This means that when derivatives are requested from the assembly, it will internally solve 
+    actual subassemblies of components were made (e.g., Rotor, Hub, Nacelle, Tower, Turbine Capital Cost, 
+    and Balance of Station). This highly nested structure was designed to support modularity in the model, 
+    to allow a wide range of researchers to build discipline models that can be swapped in and out. 
+    It also greatly simplifies the complexity of the top level model. 
+    The presence of these subassemblies is relevant to how the derivatives are computed. 
+    They are treated as single discipline components from the perspective of the top level model. 
+    Meaning that when derivatives are requested from the assembly, it will internally solve 
     for its own boundary derivatives and report them to the top level assembly. 
 
 
@@ -817,7 +821,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
     \begin{figure}[!p]
         \centering
-        \includegraphics[width=0.95\textwidth]{xdsm/wt_xdsm}
+        \includegraphics[height=\textheight]{xdsm/wt_xdsm}
         \caption{XDSM diagram of the top level wind turbine design optimization problem}
         \label{fig:xdsm_wt}
     \end{figure}
@@ -857,17 +861,17 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
 
     This problem has one additional interesting characteristic in its
-    problem formulation. A number of data connections throughout the dependency
-    graph are never relevant to the derivatives calculations. These non-relevant
+    problem formulation: a number of data connections throughout the dependency
+    graph are never relevant to the derivatives calculations. These nonrelevant
     variables are used for various settings and initialization values throughout the
     model, such as the number of blades on the rotor or the density of air. For convenience 
     and consistency, the variables do still have connections so that the right values can 
     be set in one place and passed to all necessary components automatically. 
-    Such variables, especially when they are integers (or otherwise non-differentiable)
-    necessitate the graph-based approach to identify irrelevant variables. Without that, these
+    Such variables, especially when they are integers (or otherwise nondifferentiable)
+    necessitate the graph-based approach to identify irrelevant variables. Without that capability, these
     variables would be included in the linear systems for computing derivatives. At best, 
-    the continuous non-relevant variables would only make the linear solve a bit slower. 
-    At worse, the discrete non-relevant variables would prevent the derivatives computation from working properly at all. 
+    the continuous nonrelevant variables would only make the linear solve a bit slower. 
+    At worst, the discrete nonrelevant variables would prevent the derivatives computation from working properly at all. 
 
 
     \subsection{Optimization Results}
@@ -893,10 +897,10 @@ component with apply\_deriv and apply\_derivT methods implemented.
     nacelle mass (kg) & 208,748 & 208,435  \\
     tower mass (kg) & 349,649 & 336,564  \\
     AEP (MWh/turbine) &  19,579 & 20,146  \\
-    TCC (\$/kW) &  1,698 & 1,581  \\
-    BOS (\$/kW) &  558 & 561  \\
-    OPEX (cents/kWh) &  1.22 & 1.21  \\
-    COE (cents/kWh) &  6.20 & 5.78  \\
+    TCC ($\frac{\$}{kW}$) &  1,698 & 1,581  \\
+    BOS ($\frac{\$}{kW}$) &  558 & 561  \\
+    OPEX ($\frac{\cent}{kWh}$) &  1.22 & 1.21  \\
+    COE ($\frac{\cent}{kWh}$) &  6.20 & 5.78  \\
     \bottomrule
     \end{tabular}
     \end{table}
