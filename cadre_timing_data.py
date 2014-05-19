@@ -10,7 +10,6 @@ full_graph_vars = np.array([179205, 358305, 716505,1432905, 2865705],dtype=float
 full_graph_times = np.array([96,191,404,863,1934])
 
 
-
 prune_graph_vars = np.array([146942, 293792, 587492,1174892,2349692])*6
 
 prune_graph_times = np.array([76,149,306,635,1375])
@@ -23,13 +22,14 @@ plt.rcParams.update({
 
 fig = plt.figure()
 
-plt.loglog(full_graph_vars, full_graph_times)
-plt.loglog(full_graph_vars, prune_graph_times)
+plt.loglog(full_graph_vars, full_graph_times, label="Full")
+plt.loglog(full_graph_vars, prune_graph_times, label="Reduced")
 plt.xlim([10**6,2*10**7])
 plt.ylim([5*10**1,2.5*10**3])
 plt.xlabel('Number of Variables')
 plt.ylabel('Time (sec)')
 #plt.xticks([10**5.5,10**6,10**7.5])
+plt.legend(loc="best")
 
 ax = plt.gca()
 
