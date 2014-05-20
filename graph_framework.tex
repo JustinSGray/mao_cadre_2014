@@ -81,11 +81,11 @@
 
   This work presents a method for efficiently computing analytic and semi-analytic derivatives for sparse multidisciplinary
   problem formulations inside the OpenMDAO framework. Sparsity can occur at two levels within a multidisciplinary problem.
-  It can exist between the disciplines, when certain analyses don't affect all outputs. It can also occur within a discipline when
+  It can exist between the disciplines, when certain analyses do not affect all outputs. It can also occur within a discipline when
   the Jacobian is itself very sparse. A team of researchers utilized graph-based representation of problem formulation to detect and efficiently
   handle sparsity at the problem formulation level. We combined that with a flexible API for declaring discipline-level derivatives
-  that can handle sparsity within a discipline. The combined approach yielded and efficient and flexible tool that solved
-  for system-level forward, and adjoint derivatives for a wide range of problems. The capabilities
+  that can handle sparsity within a discipline. The combined approach yielded an efficient and flexible tool that solved
+  for system-level forward and adjoint derivatives for a wide range of problems. The capabilities
   were demonstrated on two different design problems: the design of a small satellite to maximize the amount of data reported
   to the ground station and the design of a horizontal-axis wind turbine to minimize the cost of energy. In both cases, the
   method demonstrated improved efficiency by taking advantage of analytic gradients considering sparsity.
@@ -145,7 +145,8 @@
     The black-box finite-difference approximations involve the least amount of implementation effort, but they suffer from accuracy
   limitations caused by the combination of truncation and subtractive cancellation error that become worse with increasing nonlinearity in the model.
     Furthermore, the cost is at best the number of design variables times the cost of evaluating the full multidisciplinary model.
-    The complex-step method eliminates the accuracy issue at the cost of increased implementation complexity but is typically two to three times slower than finite-difference which is already relatively inefficient.
+    The complex-step method eliminates the accuracy issue at the cost of increased implementation complexity but is typically 
+    two to three times slower than finite difference which is already relatively inefficient.
 
     The complex-step method can be invasive to a small extent, but the remaining methods typically require an even greater level of source code access and modification.
     Algorithmic differentiation (AD) uses automated tools to symbolically differentiate at the line-of-code level and combine the resulting partial derivatives to obtain numerically exact values for the system-level derivatives.
@@ -181,7 +182,7 @@
     In Moore's original work on computing derivatives from a dependency graph, he employed
     a discipline-based dependency graph, with a node for each discipline and edges describing
     dependency between the nodes. A path-finding algorithm, from the NetworkX library\cite{hagberg-2008-exploring},
-    computed the relevant set of disciplines for a given derivative. Although the dependency based graph took advantage of sparsity at
+    computed the relevant set of disciplines for a given derivative. Although the dependency-based graph took advantage of sparsity at
     one level, by excluding any disciplines that did not directly contribute, it did not handle a second level of sparsity
     within disciplines. Even if a given discipline is relevant, some of its variables still may not
     directly affect the quantities of interest. To handle this problem, Moore utilized a secondary source of information
@@ -317,9 +318,9 @@
         must match the order of the variables returned for \texttt{list\_deriv\_vars()}. When a Jacobian is
         returned from \texttt{provideJ()}, OpenMDAO will cache it and use it for all derivative computations
         around the current point for both forward and adjoint derivatives. This makes the \texttt{provideJ()}
-        API the most strait-forward and easiest to use in many cases. Figure \ref{fig:code-block-1} shows
+        API the most straitforward and easiest to use in many cases. Figure \ref{fig:code-block-1} shows
         an example of an OpenMDAO component with user-specified derivatives, using the \textit{provideJ()}method.
-        This component has two input variables, $x$ and $y$ ,and two output variables, $f$ and $g$, where
+        This component has two input variables, $x$ and $y$, and two output variables, $f$ and $g$, where
 
         \begin{align}
             f\left(x, y\right) =&\  x^2 + \sin(y) \\ \notag
@@ -487,7 +488,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
     \begin{table}
         \centering
-        \caption{Small satellite design problem formulation.}
+        \caption{Small satellite design problem formulation}
         \begin{tabular}{r l l l}
             \toprule
             & Variable/Function & Description & Quantity \\
@@ -518,7 +519,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
     \begin{figure}[!htbp]
         \centering
         \includegraphics[width=0.95\textwidth]{xdsm/cadre_xdsm}
-        \caption{Extended Design Structure Matrix (XDSM) showing the structure of the small satellite design problem.}
+        \caption{Extended Design Structure Matrix (XDSM) showing the structure of the small satellite design problem}
         \label{fig:cadre_xdsm}
     \end{figure}
 
@@ -559,7 +560,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
         The objective function oscillated greatly early in the optimization while the optimizer sought a feasible
         solution. The discharge limit, battery capacity, and SOC periodicity
         constraints were the most constraining. Around the 100th iteration a mostly feasible solution was found and
-        the remaining effort was spent improving the objective. The final optimum had 3969 Gigabytes transfered.
+        the remaining effort was spent improving the objective. The final optimum had 3969 Gigabytes (GB) transferred.
 
         \begin{figure}[!htb]
         \centering
@@ -630,7 +631,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
         From Fig. \ref{fig:trajectories1} it is clear that the satellite is in a polar orbit. Since the
         goal of the optimization was to maximize data downloaded, we re-ran the problem with the ground
-        station located at McMurdo Station, Antarctica. This location is much closer to the south poll
+        station located at McMurdo Station, Antarctica. This location is much closer to the South Poll
         thus providing much greater opportunity to transmit data. The final optimal result yielded 10340 GB
         transferred, or about a 2.6X improvement. Figure \ref{fig:trajectories2} shows the ground trace
         for this situation, clearly showing a much higher density of transmission situations.
@@ -807,16 +808,16 @@ component with apply\_deriv and apply\_derivT methods implemented.
     to allow a wide range of researchers to build discipline models that can be swapped in and out.
     It also greatly simplifies the complexity of the top level model.
     The presence of these subassemblies is relevant to how the derivatives are computed.
-    They are treated as single discipline components from the perspective of the top level model.
-    Meaning that when derivatives are requested from the assembly, it will internally solve
+    They are treated as single discipline components from the perspective of the top level model,
+    meaning that when derivatives are requested from the assembly, it will internally solve
     for its own boundary derivatives and report them to the top level assembly.
 
 
     \begin{figure}[!htbp]
         \centering
-        %[Insert Sub-Assembly Dependency Graphs]
+        %[Insert subassembly Dependency Graphs]
         \includegraphics[width=0.95\textwidth]{images/rotor_depgraph}
-        \caption{Rotor sub-assembly dependency graph}
+        \caption{Rotor subassembly dependency graph}
         \label{fig:wt_sub_depgraph}
     \end{figure}
 
@@ -828,16 +829,16 @@ component with apply\_deriv and apply\_derivT methods implemented.
     \end{figure}
 
     The Rotor discipline in particular has an important internal feature with regard to computing derivatives.
-    The rotor sub-assembly is responsible for modeling aerodynamics, using CCBlade\cite{NING:BEM},
+    The rotor subassembly is responsible for modeling aerodynamics, using CCBlade\cite{NING:BEM},
     a blade element momentum (BEM) tool specifically tailored to optimization. It includes
     an internal convergence on the PowerCurve discipline, with a Brent solver \cite{Brent1971}, to find the
     rated speed, $V_{rated}$, for the wind turbine. This convergence loop requires the Rotor
-    sub-assembly to compute coupled derivatives. Figure \ref{fig:wt_sub_depgraph} shows the complete
+    subassembly to compute coupled derivatives. Figure \ref{fig:wt_sub_depgraph} shows the complete
     dependency graph for just the Rotor discipline, which has 26 components in total.  The internal solver used to find rated speed is highlighted with a box in the figure.
 
     The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
     a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for
-    composite blades, and additional structural modules for panel buckling and fatigue. In the Tower sub-assembly,
+    composite blades, and additional structural modules for panel buckling and fatigue. In the Tower subassembly,
     aerodynamics was modeled with power-law wind profiles and cylinder drag theory.
     Tower structures was modeled with pBEAM and additional modules for shell buckling,
     global buckling, and fatigue.  Some drivetrain components were modeled with scaling
@@ -906,17 +907,17 @@ component with apply\_deriv and apply\_derivT methods implemented.
     \end{tabular}
     \end{table}
 
-      The baseline design has significant structural margins in both the blade and the tower.  In this case the optimization pushes towards a lower solidity blade, saving mass, and correspondingly operates at a higher tip-speed ratio (tip-speed ratio increase from 7.55 to 8.49).  The solidity and spar-cap stiffness is sized primarily by the out-of-plane tower strike requirement.  Trailing-edge panels are sized primarily by maximum strain and buckling requirements at 50-year survival load conditions.
+      The baseline design has significant structural margins in both the blade and the tower.  In this case the optimization pushes towards a lower solidity blade, saving mass, and correspondingly operates at a higher tip-speed ratio (tip-speed ratio increased from 7.55 to 8.49).  The solidity and spar-cap stiffness is sized primarily by the out-of-plane tower strike requirement.  Trailing-edge panels are sized primarily by maximum strain and buckling requirements at 50-year survival load conditions.
 
-      While the final tower design has a similar mass, it is significantly taller in order to increase power capture (hub height increase from 90 m to 109 m).  Because of the large design margins for the baseline design, the tower is able to increase in height without large mass penalties by using a larger base diameter and thinner shell sections.  The tower design is sized primarily by shell buckling at maximum thrust load conditions.
+      While the final tower design has a similar mass, it is significantly taller to increase power capture (hub height increase from 90 m to 109 m).  Because of the large design margins for the baseline design, the tower is able to increase in height without large mass penalties by using a larger base diameter and thinner shell sections.  The tower design is sized primarily by shell buckling at maximum thrust load conditions.
 
-      The changes in the drivetrain and nacelle are more subtle, resulting in a similar mass.  Overall, the mass reductions allow for about 7\% savings in turbine capital costs.  Simultaneously, the larger hub height, and more efficient blades increase the annual energy production by almost 3\%.  The net effect is a reduction in cost of energy of over 6.5\%.
+      The changes in the drivetrain and nacelle are more subtle, resulting in a similar mass.  Overall, the mass reductions allow for about 7\% savings in turbine capital costs.  Simultaneously, the larger hub height, and more efficient blades increase the AEP by almost 3\%.  The net effect is a reduction in cost of energy of over 6.5\%.
 
     \subsection{Performance Results}
-        This optimization was run with both finite-difference and mixed analytic/finite-difference gradients.  The problem was converged to a termination tolerance of $5\times10^{-5}$ using SNOPT.  For this problem, finite-difference performs reasonably well and achieves almost the same optimum design that the analytic gradients case achieved. For both cases, a relative step size of $1\times10^{-3}$ was used for all
-        finite difference gradients. The major advantage of the analytic gradients was the improved convergence
-        behavior which yielded lower overall computational time.  Figure \ref{fig:wt-opt-progress} shows optimization
-        history for every function evaluation of the top level model (including any line searches performed). At any given iteration the objective function for the analytic gradients is lower than that for pure finite-difference gradients. This outcome is significant in two ways. First, it demonstrates the value obtained by applying the extra effort to derive derivatives for discipline analyses. Secondly, it proves that it is possible to achieve some benefits without defining derivatives for every single analysis. While outside the scope of this paper, a wide range of variations on this optimization problem have been performed, and the use of the analytic gradients has shown to also be beneficial not only in terms of speed, but also in terms of solution robustness and quality.
+        This optimization was run with both finite-difference and mixed analytic/finite-difference gradients.  The problem was converged to a termination tolerance of $5\times10^{-5}$ using SNOPT.  For this problem, finite-difference performed reasonably well and achieved almost the same optimum design that the analytic gradients case achieved. For both cases, a relative step size of $1\times10^{-3}$ was used for all
+        finite-difference gradients. The major advantage of the analytic gradients was the improved convergence
+        behavior that yielded lower overall computational time.  Figure \ref{fig:wt-opt-progress} shows optimization
+        history for every function evaluation of the top level model (including any line searches performed). At any given iteration the objective function for the analytic gradients was lower than that for pure finite-difference gradients. This outcome is significant in two ways. First, it demonstrates the value obtained by applying the extra effort to derive derivatives for discipline analyses. Second, it proves that it is possible to achieve some benefits without defining derivatives for every single analysis. While outside the scope of this paper, a wide range of variations on this optimization problem have been performed, and the use of the analytic gradients has shown to also be beneficial not only in terms of speed, but also in terms of solution robustness and quality.
 
 
 
@@ -925,7 +926,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
             \caption{Comparison of the results between the finite-difference and analytic derivatives}
             \begin{tabular}{lrr}
                 \toprule
-                             & Finite-difference & Analytic \\
+                             & Finite-Difference & Analytic \\
                 \midrule
                 Objective (COE  in $\cent$/kWh)         & 5.776  & 5.775 \\  \hline
                 $||$Constraints$||_2$                  & $3.91\times10^{-5}$ & $2.40\times10^{-5}$  \\  \hline
@@ -961,7 +962,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
       The approach was applied to two different design problems, each with unique characteristics that
       tested different aspects of the method. The small satellite design problem had millions of variables and used all analytic adjoint derivatives.
       This problem would have been very difficult to solve without analytic derivatives because of its large design spaces, however assembling the
-      system level derivatives would have been challenging to do by hand thanks to the large number of analyses involved.
+      system-level derivatives would have been challenging to do by hand thanks to the large number of analyses involved.
       The results from the optimization of the small satellite reveal that the implementation scales well with increasing
       number of variables and a significant computational cost benefit was obtained by taking advantage of
       sparsity in the problem formulation. The wind turbine design problem had a smaller design space, a
@@ -969,10 +970,10 @@ component with apply\_deriv and apply\_derivT methods implemented.
       gradients. The problem was solved with forward gradients because it had more constraints than design variables.
       The optimization results demonstrated OpenMDAO's ability to solve highly nested problems with coupled derivatives.
       In addition, they showed a gain in computational efficiency by applying analytic derivatives, even though some major
-      analyses still required finite-differencing.
+      analyses still required finite differencing.
 
       The combined results from the two design problems clearly demonstrate the value of the approach presented here: efficient and
-      automatic computation of system level derivatives, given partial derivatives from the discipline analyses
+      automatic computation of system-level derivatives, given partial derivatives from the discipline analyses
       even for very large problems. It also allows analyses with and without analytic derivatives to be used effectively
       within the same model.
 
