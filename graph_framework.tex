@@ -467,12 +467,6 @@ component with apply\_deriv and apply\_derivT methods implemented.
     as it performs a mission over the course of 1 year. The full mission is represented
     by 6 half-days of operation, computed at conditions 1, 3, 5, 7, 9, and 11 months after launch.
 
-    In their original work, Hwang et. al. located the ground station for receiving data in Ann Arbor, 
-    Michigan. However, the satellite was launched into a polar orbit so moving the ground station 
-    closer to one of the polls would help to improve the amount of data collected. McMurdo Station, 
-    Antarctica is located very close to the South Poll and is an existing scientific research facility. 
-    So for this work, the McMurdo was selected as the ground station location. 
-
     \begin{table}
         \centering
         \caption{Small satellite design problem formulation}
@@ -504,7 +498,13 @@ component with apply\_deriv and apply\_derivT methods implemented.
     \end{table}
 
     The objective of the optimization was to maximize the total amount of data transmitted to the ground
-    station over these six design points. There were seven design variables listed in Tab.~\ref{eqn:cadre_formulation}.
+    station over these six design points. In their original work, Hwang et. al. located the ground station 
+    for receiving data in Ann Arbor, Michigan. Because the satellite was launched into a polar orbit moving the ground station 
+    closer to one of the polls would increase the amount of data collected. McMurdo Station, 
+    Antarctica is located very close to the South Poll and is an existing scientific research facility. 
+    So for this work, the McMurdo was selected as the ground station location. 
+
+    There were seven design variables listed in Tab.~\ref{eqn:cadre_formulation}.
     Three of them, $\gamma$, $I_{setpt}$, and $P_{comm}$, were arrays of time-varying schedules for the attitude,
     solar panel current, and communications power, respectively. The remaining four, $cellInstd$, $finAngle$, $antAngle$, and $iSOC$,
     were all physical design variables of the satellite. All together there are 25,292 design variables.
@@ -630,8 +630,8 @@ component with apply\_deriv and apply\_derivT methods implemented.
             \end{figure}
 
           
-            Figure \ref{convergence} shows function evaluation history of the satellite problem over the course of
-            the optimization between the full and reduced graph cased. The top plot shows the value of the objective function, the total data downloaded.
+            Figure \ref{convergence} compares function evaluation history over the course of
+            the optimization between the full and reduced graph cases. The top plot shows the value of the objective function, the total data downloaded.
             The bottom plot shows the 2-norm of the constraints. In both cases the objective function oscillated greatly early in the optimization while 
             the optimizer sought a feasible solution. The saw-tooth pattern in the results occurs when the optimizer performs large
             jumps during a line search. When the line search moves too far, the objective and convergence can both get worse, causing the 
@@ -678,9 +678,9 @@ component with apply\_deriv and apply\_derivT methods implemented.
             The 30\% reduction in computational cost for solving the gradients did not directly translate into
             equivalent savings in the overall optimization cost because of the by the nontrivial cost of
             SNOPT itself. This problem requires a large number of minor iterations, where SNOPT solves a quadratic subproblem.
-            The cost of solving these subproblems is not directly affected by the cost of computing the derivatives and hence
+            The cost of solving these subproblems is not affected by the cost of computing the derivatives and hence
             reduces the overall computational savings. This characteristic will be highly problem-dependent, and is not expected
-            to be so significant for all problems. Also, the overall cost of the optimizer would get less significant as the 
+            to be so significant for all problems. Also, the overhead from the optimizer would get less significant as the 
             computational cost of the analyses and derivative solves increased. Thus, the efficiency gain from the graph reduction 
             would be more significant for larger, more expensive problems.
 
@@ -761,13 +761,44 @@ component with apply\_deriv and apply\_derivT methods implemented.
     subdivided into more than one component for implementation. In the
     satellite problem, all components were left at the same level in the model, but for this problem
     actual subassemblies of components were made (e.g., Rotor, Hub, Nacelle, Tower, Turbine Capital Cost,
-    and Balance of Station). This highly nested structure was designed to support modularity in the model,
+    and Balance of Station). This highly nested structure was designed to provide modularity,
     to allow a wide range of researchers to build discipline models that can be swapped in and out.
     It also greatly simplifies the complexity of the top level model.
     The presence of these subassemblies is relevant to how the derivatives are computed.
     They are treated as single discipline components from the perspective of the top level model,
     meaning that when derivatives are requested from the assembly, it will internally solve
-    for its own boundary derivatives and report them to the top level assembly.
+    for its own boundary derivatives and report them to the top level assembly. Table \ref{tab:wt_comp_counts}
+    summarizes number of subassemblies and components in those subassemblies for the overall model. There 
+    are a total of 104 components spread out between 22 different subassemblies. 
+
+    \begin{table}\centering
+      \caption{Component and subassembly counts for the wind turbine design problem at different levels of 
+      the model}
+      \label{tab:wt_comp_counts}
+      \begin{tabular}{l c c}
+      \toprule
+             & \# Components & \# Subsssemblies \\
+      \midrule
+      Top level & 1 & 9\\
+      \ \  Rotor & 33 & 0\\
+      \ \  Hub & 4 & 0\\
+      \ \  Nacelle & 10 & 0 \\
+      \ \  Tower & 16 & 0\\
+      \ \ Tower Strike & 1 & 0 \\
+      \ \  Annual Energy Production & 1 & 0 \\
+      \ \  Turbine Capital Cost & 1 & 3  \\
+      \ \ \ \ Nacelle Capital Cost & 8 & 0  \\
+      \ \ \ \ Tower Capital Cost & 2 & 0 \\
+      \ \ \ \ Rotor Capital Cost & 6 & 0  \\
+      \ \  Operational Expenses & 1 & 0  \\
+      \ \  Balance of Station & 19 & 0 \\
+      \ \  Financial & 1 & 0 \\ 
+      \hline
+      Total & 104 & 12 \\
+
+      \bottomrule
+      \end{tabular}
+    \end{table}
 
 
     \begin{figure}[!htbp]
@@ -784,7 +815,8 @@ component with apply\_deriv and apply\_derivT methods implemented.
     an internal convergence on the PowerCurve discipline, with a Brent solver \cite{Brent1971}, to find the
     rated speed, $V_{rated}$, for the wind turbine. This convergence loop requires the Rotor
     subassembly to compute coupled derivatives. Figure \ref{fig:wt_sub_depgraph} shows the complete
-    dependency graph for just the Rotor discipline, which has 26 components in total.  The internal solver used to find rated speed is highlighted with a box in the figure.
+    dependency graph for just the Rotor discipline, which has 33 components in total.  The internal solver used to 
+    find rated speed is highlighted with a box in the figure.
 
     The structures discipline for the blades was modeled with pBEAM \cite{Ning2013b},
     a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for
@@ -795,7 +827,13 @@ component with apply\_deriv and apply\_derivT methods implemented.
     relationships (bearings, yaw system, generator), while others used bottom-up physics
     models (bedplate, gearbox, low-speed shaft).
 
-    Analytic gradients were derived for all aerodynamic components, cost components, and many of the structural components using a mixture of hand-derivation and automatic differentiation.  Some of the remaining structural components (pBEAM and PreComp) did not yet provide analytic gradients.  For these components, the output was still continuously differentiable, and their Jacobians were estimated with finite differencing.  This led to a mixed derivative scenario where analytic Jacobians and the finite difference Jacobians were used together to solve for system-level derivatives.
+    Analytic gradients were derived for all aerodynamic components, cost components, and many of the 
+    structural components using a mixture of hand-derivation and automatic differentiation.  Some of 
+    the remaining structural components (pBEAM and PreComp) did not yet provide analytic gradients.  
+    For these components, the output was still continuously differentiable, and their Jacobians were 
+    estimated with finite differencing.  This led to a mixed derivative scenario where analytic 
+    Jacobians and the finite difference Jacobians were used together to solve for system-level 
+    derivatives.
 
 
     % \begin{figure}[!htbp]
@@ -807,9 +845,6 @@ component with apply\_deriv and apply\_derivT methods implemented.
     % \end{figure}
 
     % \clearpage
-
-
-
 
 
     This problem has one additional interesting characteristic in its
