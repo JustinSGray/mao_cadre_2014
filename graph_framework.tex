@@ -79,16 +79,24 @@
 
   \begin{abstract}
 
-  This work presents a method for efficiently computing analytic and semi-analytic derivatives for sparse multidisciplinary
-  problem formulations inside the OpenMDAO framework. Sparsity can occur at two levels within a multidisciplinary problem.
-  It can exist between the disciplines, when certain analyses do not affect all outputs. It can also occur within a discipline when
-  the Jacobian is itself very sparse. A team of researchers utilized graph-based representation of problem formulation to detect and efficiently
-  handle sparsity at the problem formulation level. We combined that with a flexible API for declaring discipline-level derivatives
-  that can handle sparsity within a discipline. The combined approach yielded an efficient and flexible tool that solved
-  for system-level forward and adjoint derivatives for a wide range of problems. The capabilities
-  were demonstrated on two different design problems: the design of a small satellite to maximize the amount of data reported
-  to the ground station and the design of a horizontal-axis wind turbine to minimize the cost of energy. In both cases, the
-  method demonstrated improved efficiency by taking advantage of analytic gradients considering sparsity.
+
+  Modern design problems often require highly multidisciplinary system level models composed of tens of disciplines. OpenMDAO, 
+  a model integration framework, was developed to help facilitate the creation of such models. Traditionally, when gradient 
+  based optimization is applied to such large models, finite difference is used to compute system level derivatives. 
+  However, as the complexity and size of design problems continue to grow, the computational cost and numerical challenges of 
+  from finite difference become prohibitive. Analytic derivatives are an effective solution for solving large scale design 
+  optimizations, but computing system level analytic derivatives for large multidisciplinary models inside a framework is challenging. 
+  To address this challenge a method was developed to efficiently computing analytic and semi-analytic derivatives for sparse multidisciplinary
+  models inside the OpenMDAO framework, given discipline level partial derivatives. A graph-based representation of 
+  problem formulation was utilized to detect and efficiently handle sparsity at the problem formulation level. 
+  Additionally, a flexible API was built for declaring discipline-level derivatives to handle sparsity within a the Jacobian for a specific discipline. 
+  The combined approach yielded an efficient and flexible tool that solved system-level forward and adjoint derivatives 
+  for two different example problems. First A small satellite design optimization was performed, using analytic adjoint gradients, to maximize the 
+  information transfered to a ground station over the course of a year. This problem demonstrated a significant computational cost reduction for
+  the graph-based approach to computing derivatives. Second a wind turbine design optimization was run using mixed analytic and 
+  finite-difference forward derivatives. The results showed improved convergence and reduced computational cost for mixed derivatives. 
+  Overall the results show that OpenMDAO can efficiently compute derivatives for a wide range of problems with large design spaces and 
+  complex problem formulations and demonstrate the advantage of implementing analytic derivatives even for only parts of the problem.
 
   \end{abstract}
 
