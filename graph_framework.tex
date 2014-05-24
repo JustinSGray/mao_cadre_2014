@@ -843,18 +843,6 @@ component with apply\_deriv and apply\_derivT methods implemented.
     Jacobians and the finite difference Jacobians were used together to solve for system-level 
     derivatives.
 
-
-    % \begin{figure}[!htbp]
-    %     \centering
-    %     %Insert Top Level Dependency Graph]
-    %     \includegraphics[width=0.5\textwidth]{images/wt_depgraph}
-    %     \caption{Wind turbine problem top level dependency graph}
-    %     \label{fig:wt_top_depgraph}
-    % \end{figure}
-
-    % \clearpage
-
-
     This problem has one additional interesting characteristic in its
     problem formulation: a number of data connections throughout the dependency
     graph are never relevant to the derivatives calculations. These nonrelevant
@@ -921,10 +909,10 @@ component with apply\_deriv and apply\_derivT methods implemented.
                 \toprule
                                                       & Finite-Difference & Analytic \\
                 \midrule
-                Objective (COE  in $\cent$/kWh)       & 5.799  & 5.799 \\ 
-                $||$Constraints$||_2$                 & $2.23\times10^{-5}$ & $1.42\times10^{-5}$  \\ 
-                \# Major Iterations                   &  133 & 126  \\
-                Total Run Time (hours)                &  6.8 & 2.5 \\
+                Objective (COE  in $\cent$/kWh)       & 5.8045  & 5.8042 \\ 
+                $||$Constraints$||_2$                 & $3.70\times10^{-6}$ & $2.32\times10^{-6}$  \\ 
+                \# Major Iterations                   &  143 & 113  \\
+                \textbf{Total Run Time (hours)}       &  \textbf{5.43} & \textbf{1.11} \\
                 \bottomrule
             \end{tabular}
             \label{tab:wt-fd-speeds}
