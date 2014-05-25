@@ -551,21 +551,17 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
     \subsection{Optimization Results}
 
-        The final optimal design yielded 1000 GibaBytes (GB) total data downloaded over the 6 time points considered. 
+        The final optimal design yielded 22843 GibaBytes (GB) total data downloaded over the 6 time points considered. 
         Figure \ref{fig:trajectories} shows ground trace for the satellite colored by communications bit rate
-        for all 6 time points combined. Bit rate can be compared directly with the communications power in
+        for all 6 time points combined. Bit rate can be correlated directly with the communications power in
         Fig. \ref{cadre_data_results}, where large spikes in communications bit rate correspond to passes over the ground station requiring 
         power to the communication system for transmission. Figure \ref{cadre_data_results} shows key design and performance data 
         for the design problem over the course of the optimization for all six points in time considered. Data is shown for the 
-        initial condition, at 50 function evaluations, and for the final optimum solution. At the initial condition
+        initial condition, at 100 function evaluations, and for the final optimum solution. At the initial condition
         the roll angle is a constant 45 degrees, the communication power is uniformly 0, and battery state of charge drops quickly below 0. 
         This design is obviously terrible and indicates clearly why the optimizer had to work hard to find a feasible solution. 
-        By the 50th function evaluation, the optimizer found a sinusoidal pattern in the roll angle and a saw-tooth pattern 
-        for SOC. The roll angle pattern allowed the satellite to continually pitch toward the sun throughout its orbits. 
-        The SOC exhibited sharp drops whenever a communications opportunity arose and the power to the communication system was ramped up. 
-        The data from the final optimized design shows a refinement of the direction already discussed with a much stronger convergence for 
-        all the constraints. 
-
+        By the 100th function evaluation, the optimizer found a reasonable design which refined smoothly for the rest of the optimization. 
+        
         \begin{figure}[!htb]
             \centering
             \includegraphics[width=0.49\textwidth]{images/allpts_gearth_mcmurdo}
@@ -580,7 +576,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
           \centering
           \includegraphics[width=\textwidth]{images/cadre_data}
           \caption[width=0.4\textwidth]{Plots of the SOC, roll angle, transmitter gain, communications power, and total data downloaded for 
-          each of the 6 time periods analyzed. Data is presented for the initial condition (black), at 50 function evaluations (red), and at the final 
+          each of the 6 time periods analyzed. Data is presented for the initial condition (black), at 100 function evaluations (red), and at the final 
           optimal point (blue). 
           \label{cadre_data_results}
           }
@@ -609,12 +605,13 @@ component with apply\_deriv and apply\_derivT methods implemented.
             and a second where the graph was reduced based on the algorithms discussed in Section \ref{sec:determing relevance}. 
             The effects of the graph reduction are shown in Table \ref{tab:cadre-relevance-reduction}. The number of variables in
             the graph, and hence the size of the linear system that needs to be solved, was reduced by 18\%. This reduction 
-            yielded a drop in runtime of about 16\%. 
+            yielded a drop in runtime of about 20\%. 
 
 
             \begin{table}
                 \centering
-                \caption{Effects of relevance-based problem reduction on derivatives linear system size}
+                \caption{Effects of relevance-based graph reduction on optimization performance. Run times are quoted as time to 
+                325 function evaluations}
                   \begin{tabular}{l c c c}
                       \toprule
                                    & Full Graph & Reduced Graph & \% Reduction\\
@@ -622,7 +619,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
                       \# Variables  & 2.15e6 & 1.76e6 & 18\%\\ 
                       \# Components & 39 & 29 & 25.6\%\\ 
                       Derivative Solve Time (sec) & 126 & 87 & 31\%\\ 
-                      Total Run Time (hours) & 10.68 & 8.94 & 16.3\%\\ 
+                      Total Run Time (hours) & 10.68 & 8.94 & 21.3\%\\ 
                       \bottomrule
                   \end{tabular}    
                 \label{tab:cadre-relevance-reduction}
@@ -875,15 +872,15 @@ component with apply\_deriv and apply\_derivT methods implemented.
     \toprule
      &  Baseline & Optimized  \\
     \midrule
-    blade mass (kg) & 17,303 & 12,829  \\
-    hub mass (kg) & 42,126 & 38,170  \\
-    nacelle mass (kg) & 208,748 & 208,435  \\
-    tower mass (kg) & 349,649 & 336,564  \\
-    AEP (MWh/turbine) &  19,579 & 20,146  \\
-    TCC ($\frac{\$}{kW}$) &  1,698 & 1,581  \\
+    blade mass (kg) & 17,303 & 13,226  \\
+    hub mass (kg) & 42,126 & 38,482  \\
+    nacelle mass (kg) & 208,748 & 208,364  \\
+    tower mass (kg) & 349,649 & 333,492  \\
+    AEP (MWh/turbine) &  19,579 & 20,093  \\
+    TCC ($\frac{\$}{kW}$) &  1,698 & 1,587  \\
     BOS ($\frac{\$}{kW}$) &  558 & 561  \\
     OPEX ($\frac{\cent}{kWh}$) &  1.22 & 1.21  \\
-    COE ($\frac{\cent}{kWh}$) &  6.20 & 5.78  \\
+    COE ($\frac{\cent}{kWh}$) &  6.20 & 5.80  \\
     \bottomrule
     \end{tabular}
     \end{table}
@@ -895,9 +892,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
       The changes in the drivetrain and nacelle are more subtle, resulting in a similar mass.  Overall, the mass reductions allow for about 7\% savings in turbine capital costs.  Simultaneously, the larger hub height, and more efficient blades increase the AEP by almost 3\%.  The net effect is a reduction in cost of energy of over 6.5\%.
 
     \subsection{Performance Results}
-        This optimization was run with both finite-difference and mixed analytic/finite-difference gradients.  The problem was converged to a termination tolerance of $5\times10^{-5}$ using SNOPT.  For this problem, finite-difference performed reasonably well and achieved almost the same optimum design that the analytic gradients case achieved. For both cases, a relative step size of $1\times10^{-3}$ was used for all
-        finite-difference gradients. The major advantage of the analytic gradients was the improved convergence
-        behavior that yielded lower overall computational time.  Figure \ref{fig:wt-opt-progress} shows optimization
+        This optimization was run with both finite-difference and mixed analytic/finite-difference gradients.  The problem was converged to a termination tolerance of $5\times10^{-5}$ using SNOPT.  For this problem, finite-difference achieved almost the same optimum design that the analytic gradients case found, and had the same level of feasibility. The major advantage of the analytic gradients was 5x reduction in computational time. Figure \ref{fig:wt-opt-progress} shows optimization
         history for every function evaluation of the top level model (including any line searches performed). At any given iteration the objective function for the analytic gradients was lower than that for pure finite-difference gradients. This outcome is significant in two ways. First, it demonstrates the value obtained by applying the extra effort to derive derivatives for discipline analyses. Second, it proves that it is possible to achieve some benefits without defining derivatives for every single analysis. While outside the scope of this paper, a wide range of variations on this optimization problem have been performed, and the use of the analytic gradients has shown to also be beneficial not only in terms of speed, but also in terms of solution robustness and quality.
 
 
