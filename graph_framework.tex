@@ -680,8 +680,8 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
   \section{Wind Turbine Design Problem}
 
-    The goal of this design problem was to optimize a horizontal-axis wind turbine to minimize
-    the cost of energy at a land-based site. The problem includes the design of the rotor blades
+    The goal of this design problem was to optimize a horizontal-axis wind turbine for minimum
+    cost of energy. The problem includes the design of the rotor blades
     with a coupled aerostructural analysis as well as the structural design of the hub, nacelle,
     and tower. Cost models for the turbine and wind plant are included
     to assess trade-offs in energy capture and capital and operational costs. The analyses
@@ -705,40 +705,41 @@ component with apply\_deriv and apply\_derivT methods implemented.
                                     & $0.005 \le t_{sc} \le 0.2$ & Spar-cap thickness distribution & $5$ \\
                                     & $0.005 \le t_{te} \le 0.2$ & Trailing-edge panel distribution & $5$ \\
                                     & $3 \le \lambda \le 14$ & Tip-speed ratio in Region 2 & $1$ \\
-                                    & $40 \le L_{blade} \le 100$ & Blade length & $1$ \\
                                     & $0.1 \le L_{shaft} \le 10$ & Low-speed-shaft lengths & $2$ \\
                                     & $0.01 \le h_{beam} \le 10$ & Bedplate I-beam sizing & $2$ \\
-                                    & $3.87 \le d \le 20$ & Tower diameter & $3$ \\
+                                    & $3.87 \le d \le 6.3$ & Tower diameter & $3$ \\
                                     & $0.005 \le t \le 0.2$ & Tower wall thickness & $3$ \\
                                     & $0.25 \le z_{waist} \le 0.75$ & Tower waist location & $1$ \\
                                     & $50 \le H \le 200$ & Tower height & $1$ \\
-                                    & & Total & $33$ \\
+                                    & & Total & $32$ \\
 
+                                    % & $40 \le L_{blade} \le 100$ & Blade length & $1$ \\
             \\
             subject to          & $\delta_{tip} \le \delta_{max}$ & Blade tower strike & $1$ \\
                                     & $\delta_{ground} \ge \delta_{min}$ & Blade ground clearance & $1$ \\
-                                    & $\epsilon \le \epsilon_{ult}$ & Ultimate strain in blades & $24$ \\
-                                    & $\epsilon \le \epsilon_{cr}$ & Panel buckling in blades & $14$ \\
+                                    & $f_{blade} \ge 3 \Omega$ & Blade resonance avoidance & $2$ \\
+                                    & $\epsilon \le \epsilon_{ult}$ & Ultimate strain in blades & $30$ \\
+                                    & $\epsilon \le \epsilon_{cr}$ & Panel buckling in blades & $15$ \\
                                     & $\delta_{lss} \le \delta_{max}$ & Deflection limits in low-speed shaft & $4$ \\
                                     & $\delta_{bdp} \le \delta_{max}$ & Deflection limits in bedplate & $2$ \\
                                     & $\sigma_{bdp} \le \sigma_{ult}$ & Ultimate stress in bedplate & $2$ \\
-                                    & $\sigma_{twr} \le \sigma_{ult}$ & Ultimate stress in tower & $14$ \\
+                                    & $\sigma_{twr} \le \sigma_{ult}$ & Ultimate stress in tower & $12$ \\
                                     & $\sigma_{twr} \le \sigma_{shell}$ & Shell buckling in tower & $14$ \\
                                     & $\sigma_{twr} \le \sigma_{global}$ & Global buckling in tower & $14$ \\
-                                    & $f \ge \Omega_{rotor}$ & Tower resonance avoidance & $1$ \\
-                                    & $d/t \ge 120$ & Weldability & $1$ \\
+                                    & $f_{tower} \ge \Omega_{rotor}$ & Tower resonance avoidance & $1$ \\
+                                    & $d/t \ge 120$ & Weldability & $3$ \\
                                     & $d_{top}/d_{base} > 0.4$ & Manufacturability & $1$ \\
-                                    & & Total & $93$ \\
+                                    & & Total & $102$ \\
             \bottomrule
         \end{tabular}
         \label{tab:coe_formulation}
     \end{table}
 
 
-    There are 33 design variables, 1 objective, and 93 constraints. An additional maximum tip-speed constraint of
+    There are 32 design variables, 1 objective, and 102 constraints. An additional maximum tip-speed constraint of
     80\,m/s is imposed directly in the analysis.  Because there are
     fewer design variables than quantities of interest, the problem was solved with
-    forward derivatives. In addition, the relatively small size of the design space
+    forward derivatives. In addition, the relatively small number of design variables
     enabled a comparison between the use of analytic and finite-difference gradients. There were 10 disciplines
     involved in the top level of the model, as seen in Fig.~\ref{fig:xdsm_wt}.  Half of these disciplines represented the physics of the problem, aerodynamic and structural models of the turbine components, while the other half encapsulated the various cost components.  The aerostructural coupling is achieved through a fixed point iteration around the rotor discipline, converging the deflected blade shape to a tolerance of $1\times10^{-8}$. OpenMDAO automatically computes the coupled derivatives around this convergence loop.
 
@@ -750,7 +751,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
         \label{fig:xdsm_wt}
     \end{figure}
 
-    Similarly to the small satellite design problem, many of the disciplines are further
+    Similar to the small satellite design problem, many of the disciplines are further
     subdivided into more than one component for implementation. In the
     satellite problem, all components were left at the same level in the model, but for this problem
     actual subassemblies of components were made (e.g., Rotor, Hub, Nacelle, Tower, Turbine Capital Cost,
@@ -762,7 +763,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
     meaning that when derivatives are requested from the assembly, it will internally solve
     for its own boundary derivatives and report them to the top level assembly. Table~\ref{tab:wt_comp_counts}
     summarizes number of subassemblies and components in those subassemblies for the overall model. There
-    are a total of 104 components spread out between 22 different subassemblies.
+    are a total of 104 components spread out between 12 different subassemblies.
 
     \begin{table}\centering
       \caption{Component and subassembly counts for the wind turbine design problem at different levels of
@@ -813,27 +814,27 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
     The structures discipline for the blades is modeled with pBEAM \cite{Ning2013b},
     a beam finite element code, PreComp \cite{Bir2005}, a structural property tool for
-    composite blades, and additional structural modules for panel buckling and fatigue. In the Tower subassembly,
+    composite blades, and additional structural modules for panel buckling, load and mass transfer, and geometric modeling. In the Tower subassembly,
     aerodynamics is modeled with power-law wind profiles and cylinder drag theory.
-    Tower structures is modeled with pBEAM and additional modules for shell buckling,
-    global buckling, and fatigue.  Some drivetrain components are modeled with scaling
+    Tower structures is modeled with pBEAM and additional modules for hoop stress, shell buckling,
+    and global buckling.  Some drivetrain components are modeled with scaling
     relationships (bearings, yaw system, generator), while others used bottom-up physics
     models (bedplate, gearbox, low-speed shaft).
 
     Analytic gradients are derived for all aerodynamic components, cost components, and many of the
     structural components using a mixture of hand-derivation and automatic differentiation.  Some of
-    the remaining structural components (pBEAM and PreComp) did not yet provide analytic gradients.
-    For these components, the output was still continuously differentiable, and their Jacobians are
+    the remaining structural components (pBEAM and PreComp) do not yet provide analytic gradients.
+    For these components, the output was still continuously differentiable, and their Jacobians were
     estimated with finite differencing.  This led to a mixed derivative scenario where analytic
-    Jacobians and the finite difference Jacobians are used together to solve for system-level
+    Jacobians and the finite difference Jacobians were used together to solve for system-level
     derivatives.
 
     This problem has one additional interesting characteristic in its
     problem formulation: a number of data connections throughout the dependency
-    graph are never relevant to the derivatives calculations. These nonrelevant
-    variables are used for various settings and initialization values throughout the
+    graph were never relevant to the derivatives calculations. These nonrelevant
+    variables were used for various settings and initialization values throughout the
     model, such as the number of blades on the rotor or the density of air. For convenience
-    and consistency, the variables do still have connections so that the right values can
+    and consistency, the variables still have connections so that the right values can
     be set in one place and passed to all necessary components automatically.
     Such variables, especially when they are integers (or otherwise nondifferentiable)
     necessitate the graph-based approach to identify irrelevant variables. Without that capability, these
@@ -873,14 +874,14 @@ component with apply\_deriv and apply\_derivT methods implemented.
     \end{tabular}
     \end{table}
 
-      The baseline design has significant structural margins in both the blade and the tower.  In this case the optimization pushes towards a lower solidity blade, saving mass, and correspondingly operates at a higher tip-speed ratio (tip-speed ratio increased from 7.55 to 8.49).  The solidity and spar-cap stiffness is sized primarily by the out-of-plane tower strike requirement.  Trailing-edge panels are sized primarily by maximum strain and buckling requirements at 50-year survival load conditions.
+      The baseline design has significant structural margins in both the blade and the tower.  In this case the optimization pushes towards a lower solidity blade, saving mass, and correspondingly operates at a higher tip-speed ratio (tip-speed ratio increased from 7.55 to 8.52).  The solidity and spar-cap stiffness was sized primarily by the out-of-plane tower strike requirement.  Trailing-edge panels were sized primarily by maximum strain and buckling requirements at 50-year survival load conditions.
 
-      While the final tower design has a similar mass, it is significantly taller to increase power capture (hub height increase from 90 m to 109 m).  Because of the large design margins for the baseline design, the tower is able to increase in height without large mass penalties by using a larger base diameter and thinner shell sections.  The tower design is sized primarily by shell buckling at maximum thrust load conditions.
+      While the final tower design has a similar mass to the baseline, it is significantly taller in order to increase power capture (hub height increase from 90\,m to 107\,m).  Because of the large design margins for the baseline design, the tower is able to increase in height without large mass penalties by using a larger base diameter and thinner shell sections.  The tower design is sized primarily by shell buckling at maximum thrust load conditions.
 
-      The changes in the drivetrain and nacelle are more subtle, resulting in a similar mass.  Overall, the mass reductions allow for about 7\% savings in turbine capital costs.  Simultaneously, the larger hub height, and more efficient blades increase the AEP by almost 3\%.  The net effect is a reduction in cost of energy of over 6.5\%.
+      The changes in the drivetrain and nacelle are more subtle, resulting in a similar mass.  Overall, the mass reductions allow for over 9\% savings in turbine capital costs.  Simultaneously, the larger hub height, and more efficient blades increase the AEP by almost 3\%.  The net effect is a reduction in cost of energy of approximately 6.5\%.
 
     \subsection{Performance Results}
-        This optimization was run with both finite-difference and mixed analytic/finite-difference gradients.  The problem was converged to a termination tolerance of $5\times10^{-5}$ using SNOPT.  For this problem, finite-difference achieved almost the same optimum design that the analytic gradients case found, and had the same level of feasibility. The major advantage of the analytic gradients was 5x reduction in computational time, although a minor improvement in the objective function was achieved as well. Figure~\ref{fig:wt-opt-progress} shows optimization
+        This optimization was run with both finite-difference and mixed analytic/finite-difference gradients.  The problem was converged to a termination tolerance of $5\times10^{-5}$ using SNOPT.  For this problem, finite-difference achieved almost the same optimum design that the analytic gradients case found, and had the same level of feasibility. The major advantage of the analytic gradients was a 5X reduction in computational time, although a minor improvement in the objective function was achieved as well. Figure~\ref{fig:wt-opt-progress} shows optimization
         history for every function evaluation of the top level model. This outcome is significant in two ways. First, it demonstrates the value obtained by applying the extra effort to derive derivatives for discipline analyses. Second, it proves that it is possible to achieve some benefits without defining derivatives for every single analysis. While outside the scope of this paper, a wide range of variations on this optimization problem have been performed, and the use of the analytic gradients has shown to also be beneficial not only in terms of speed, but also in terms of solution robustness and quality.
 
 
@@ -893,7 +894,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
                                                       & Finite-Difference & Analytic \\
                 \midrule
                 Objective (COE  in $\cent$/kWh)       & 5.8045  & 5.8042 \\ 
-                max(Constraints)                & $2.62\times10^{-6}$ & $1.81\times10^{-6}$  \\ 
+                max(Constraint Violation)                & $2.62\times10^{-6}$ & $1.81\times10^{-6}$  \\ 
                 \# Major Iterations                   &  143 & 113  \\
                 \textbf{Total Run Time (hours)}       &  \textbf{5.43} & \textbf{1.11} \\
 
