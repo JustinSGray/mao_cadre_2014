@@ -637,7 +637,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
           
             Figure \ref{convergence} compares function evaluation history over the course of
             the optimization between the full and reduced graph cases. The top plot shows the value of the objective function, the total data downloaded.
-            The bottom plot shows the 2-norm of the constraints. In both cases the objective function oscillated greatly early in the optimization while 
+            The bottom plot shows the maximum constraint violation. In both cases the objective function oscillated greatly early in the optimization while 
             the optimizer sought a feasible solution. The saw-tooth pattern in the results occurs when the optimizer performs large
             jumps during a line search. When the line search moves too far, the objective and convergence can both get worse, causing the 
             optimizer to back to recover. Around the 100th iteration a mostly feasible solution was found and
@@ -892,8 +892,8 @@ component with apply\_deriv and apply\_derivT methods implemented.
       The changes in the drivetrain and nacelle are more subtle, resulting in a similar mass.  Overall, the mass reductions allow for about 7\% savings in turbine capital costs.  Simultaneously, the larger hub height, and more efficient blades increase the AEP by almost 3\%.  The net effect is a reduction in cost of energy of over 6.5\%.
 
     \subsection{Performance Results}
-        This optimization was run with both finite-difference and mixed analytic/finite-difference gradients.  The problem was converged to a termination tolerance of $5\times10^{-5}$ using SNOPT.  For this problem, finite-difference achieved almost the same optimum design that the analytic gradients case found, and had the same level of feasibility. The major advantage of the analytic gradients was 5x reduction in computational time. Figure \ref{fig:wt-opt-progress} shows optimization
-        history for every function evaluation of the top level model (including any line searches performed). At any given iteration the objective function for the analytic gradients was lower than that for pure finite-difference gradients. This outcome is significant in two ways. First, it demonstrates the value obtained by applying the extra effort to derive derivatives for discipline analyses. Second, it proves that it is possible to achieve some benefits without defining derivatives for every single analysis. While outside the scope of this paper, a wide range of variations on this optimization problem have been performed, and the use of the analytic gradients has shown to also be beneficial not only in terms of speed, but also in terms of solution robustness and quality.
+        This optimization was run with both finite-difference and mixed analytic/finite-difference gradients.  The problem was converged to a termination tolerance of $5\times10^{-5}$ using SNOPT.  For this problem, finite-difference achieved almost the same optimum design that the analytic gradients case found, and had the same level of feasibility. The major advantage of the analytic gradients was 5x reduction in computational time, although a minor improvement in the objective function was achieved as well. Figure \ref{fig:wt-opt-progress} shows optimization
+        history for every function evaluation of the top level model. This outcome is significant in two ways. First, it demonstrates the value obtained by applying the extra effort to derive derivatives for discipline analyses. Second, it proves that it is possible to achieve some benefits without defining derivatives for every single analysis. While outside the scope of this paper, a wide range of variations on this optimization problem have been performed, and the use of the analytic gradients has shown to also be beneficial not only in terms of speed, but also in terms of solution robustness and quality.
 
 
 
@@ -905,7 +905,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
                                                       & Finite-Difference & Analytic \\
                 \midrule
                 Objective (COE  in $\cent$/kWh)       & 5.8045  & 5.8042 \\ 
-                $||$Constraints$||_2$                 & $3.70\times10^{-6}$ & $2.32\times10^{-6}$  \\ 
+                max(Constraints)                & $2.62\times10^{-6}$ & $1.81\times10^{-6}$  \\ 
                 \# Major Iterations                   &  143 & 113  \\
                 \textbf{Total Run Time (hours)}       &  \textbf{5.43} & \textbf{1.11} \\
                 \bottomrule
