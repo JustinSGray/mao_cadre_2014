@@ -537,7 +537,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
 
     \subsection{Optimization Results}
 
-        The final optimal design yielded 22843 GibaBytes (GB) total data downloaded over the 6 time points considered. 
+        The final optimal design yielded 10343 GibaBytes (GB) total data downloaded over the 6 time points considered. 
         Figure~\ref{fig:trajectories} shows ground trace for the satellite colored by communications bit rate
         for all 6 time points combined. Bit rate can be correlated directly with the communications power in
         Fig.~\ref{cadre_data_results}, where large spikes in communications bit rate correspond to passes over the ground station requiring 
@@ -562,6 +562,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
         \begin{figure}[!htb]
           \centering
           \includegraphics[width=\textwidth]{images/cadre_data}
+          \includegraphics[width=.5\textwidth]{images/cadre_data_legend}
           \caption[width=0.4\textwidth]{Plots of the SOC, roll angle, transmitter gain, communications power, and total data downloaded for 
           each of the 6 time periods analyzed. Data is presented for the initial condition (black), at 100 function evaluations (red), and at the final 
           optimal point (blue). 
@@ -591,7 +592,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
             and a second where the graph was reduced based on the algorithms discussed in Section~\ref{sec:determing relevance}.
             The effects of the graph reduction are shown in Table \ref{tab:cadre-relevance-reduction}. The number of variables in
             the graph, and hence the size of the linear system that needs to be solved, was reduced by 18\%. This reduction 
-            yielded a drop in runtime of about 20\%. 
+            yielded a drop in runtime of about 21\%. 
 
 
 
@@ -606,7 +607,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
                       \# Variables  & 2.15e6 & 1.76e6 & 18\%\\ 
                       \# Components & 39 & 29 & 25.6\%\\ 
                       Derivative Solve Time (sec) & 126 & 87 & 31\%\\ 
-                      Total Run Time (hours) & 10.68 & 8.94 & 21.3\%\\ 
+                      Total Run Time (hours) & 22.39 & 17.33 & 21.3\%\\ 
 
                       \bottomrule
                   \end{tabular}
@@ -617,20 +618,20 @@ component with apply\_deriv and apply\_derivT methods implemented.
             \begin{figure}[!htb]
             \centering
             \includegraphics[width=0.99\textwidth]{images/cadre_opt_progress}
-            \caption[width=0.22\textwidth]{Iteration history of the satellite problem.
+            \caption[width=0.22\textwidth]{Iteration history for the full-graph and reduced-graph cases of the satellite problem. 
             \label{convergence}
             }
             \end{figure}
 
 
             Figure~\ref{convergence} compares function evaluation history over the course of
-            the optimization between the full and reduced graph cases. The top plot shows the value of the objective function, the total data downloaded.
+            the optimization between the full-graph and reduced-graph cases. The top plot shows the value of the objective function, the total data downloaded.
             The bottom plot shows the maximum constraint violation. In both cases the objective function oscillated greatly early in the optimization while 
-
             the optimizer sought a feasible solution. The saw-tooth pattern in the results occurs when the optimizer performs large
             jumps during a line search. When the line search moves too far, the objective and convergence can both get worse, causing the
-            optimizer to backtrack. At around the 100th iteration, a mostly feasible solution is found, and
-            the remaining effort is spent improving the objective.
+            optimizer to backtrack. The reduced-graph case shows significantly improved convergence, stabilizing to a feasible solution 
+            in around 80 iterations verses 200 for the full-graph case. The reduced-graph version also found a better optimum data downloaded 
+            of 10343 GB versus 9718 GB for the full-graph case, a 6\% improvement. 
 
             \begin{table}
               \centering
@@ -657,8 +658,6 @@ component with apply\_deriv and apply\_derivT methods implemented.
                 \label{fig:cadre-compute-cost}
             \end{figure}
 
-            Although the overall reduction in optimization cost was 16\%, reduction of dependency graph provided
-            a 30\% reduction in the cost to compute adjoint derivatives.
             Figure~\ref{fig:cadre-compute-cost} shows a log-log plot of computational cost for 31 adjoint solves (30 constraints + 1 objective) versus the
             number of variables in the full problem. The trend shows linear growth for both the full and reduced
             versions of the graph, with a constant ratio between them. This problem is scaled by
@@ -669,9 +668,11 @@ component with apply\_deriv and apply\_derivT methods implemented.
             demonstrates the consequence of the constant problem formulation sparsity, which yields a fixed ratio between
             the full and reduced problem size.
 
-            The 30\% reduction in computational cost for solving the gradients did not directly translate into
-            equivalent savings in the overall optimization cost because of the computational cost of the optimizer. This problem requires a large number of minor iterations, where SNOPT solves a quadratic subproblem.
-            The cost of solving these subproblems is not affected by the cost of computing the derivatives, and hence
+            Although the overall reduction in optimization cost was 21\%, reduction of dependency graph provided
+            a 30\% reduction in the cost to compute adjoint derivatives.The reduction in computational cost for solving the gradients 
+            did not directly translate into equivalent savings in the overall optimization cost because of the computational 
+            cost of the optimizer. This problem requires a large number of minor iterations, where SNOPT solves a quadratic subproblem.
+            The cost of solving these subproblems is not directly affected by the cost of computing the derivatives, and hence
             reduces the overall computational savings. This characteristic is highly problem-dependent, and is not expected
             to be so significant for all problems. Also, the overhead from the optimizer would get less significant as the
             computational cost of the analyses and derivative solves increased. Thus, the efficiency gain from the graph reduction
@@ -893,7 +894,7 @@ component with apply\_deriv and apply\_derivT methods implemented.
                                                       & Finite-Difference & Analytic \\
                 \midrule
                 Objective (COE  in $\cent$/kWh)       & 5.8045  & 5.8042 \\ 
-                max(Constraints)                & $2.62\times10^{-6}$ & $1.81\times10^{-6}$  \\ 
+                Max Constraints Violation             & $2.62\times10^{-6}$ & $1.81\times10^{-6}$  \\ 
                 \# Major Iterations                   &  143 & 113  \\
                 \textbf{Total Run Time (hours)}       &  \textbf{5.43} & \textbf{1.11} \\
 
